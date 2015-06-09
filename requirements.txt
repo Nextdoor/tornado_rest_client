@@ -1,0 +1,4 @@
+# General App Requirements
+tornado>=4
+simplejson
+retrying
