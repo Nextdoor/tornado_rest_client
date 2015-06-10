@@ -19,7 +19,7 @@ clean:
 	$(MAKE) -C docs clean
 
 test: build docs
-	python setup.py integration pep8 pyflakes
+	python setup.py test integration pep8 pyflakes
 
 integration: build
 	PYFLAKES_NODOCTEST=True python setup.py integration pep8 pyflakes

@@ -291,7 +291,7 @@ class RestConsumer(object):
         self._attrs = config.get('attrs', None)
         self._kwargs = kwargs
 
-        # If no client was supplied, then we
+        # If no client was supplied, then we use our default
         self._client = client or RestClient()
 
         # Ensure that any tokens that need filling-in in the self._path setting
@@ -499,7 +499,7 @@ class SimpleTokenRestClient(RestClient):
 
     Args:
         tokens: (dict) A dict with the token name/value(s) to append to every
-                we request.
+                web request.
     """
 
     def __init__(self, tokens, *args, **kwargs):
