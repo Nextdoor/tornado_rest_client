@@ -11,11 +11,3 @@
 # limitations under the License.
 #
 # Copyright 2014 Nextdoor.com, Inc
-
-from tornado_rest_client.api import RestConsumer
-from tornado_rest_client.api import RestClient
-from tornado_rest_client.api import SimpleTokenRestClient
-
-RestConsumer  # pyflakes
-RestClient    # pyflakes
-SimpleTokenRestClient  # pyflakes
