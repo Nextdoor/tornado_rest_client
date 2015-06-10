@@ -1,5 +1,5 @@
-Development
------------
+Getting Started
+---------------
 
 Setting up your Environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -107,8 +107,8 @@ HTTPBin Actor with the RestConsumer
 
     class HTTPBinRestClient(api.RestConsumer):
 
-        _CONFIG = HTTPBIN
-        _ENDPOINT = 'http://httpbin.org'
+        CONFIG = HTTPBIN
+        ENDPOINT = 'http://httpbin.org'
 
 
     class HTTPBinGetThenPost(base.BaseActor):
@@ -141,7 +141,7 @@ You can customize the exception handling by subclassing the
 .. code-block:: python
 
     class MyRestClient(api.RestClient):
-        _EXCEPTIONS = {
+        EXCEPTIONS = {
             httpclient.HTTPError: {
                 '401': my.CustomException(),
                 '403': exceptions.InvalidCredentials,

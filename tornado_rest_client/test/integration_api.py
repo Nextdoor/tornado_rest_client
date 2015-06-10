@@ -44,14 +44,14 @@ HTTPBIN = {
 
 class HTTPBinRestConsumer(api.RestConsumer):
 
-    _CONFIG = HTTPBIN
-    _ENDPOINT = 'http://httpbin.org'
+    CONFIG = HTTPBIN
+    ENDPOINT = 'http://httpbin.org'
 
 
 class HTTPBinRestConsumerBasicAuthed(HTTPBinRestConsumer):
 
-    _CONFIG = dict(HTTPBinRestConsumer._CONFIG)
-    _CONFIG['auth'] = {
+    CONFIG = dict(HTTPBinRestConsumer.CONFIG)
+    CONFIG['auth'] = {
         'user': 'username',
         'pass': 'password',
     }

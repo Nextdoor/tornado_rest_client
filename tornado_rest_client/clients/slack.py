@@ -13,8 +13,8 @@
 # Copyright 2014 Nextdoor.com, Inc
 
 """
-:mod:`tornado_rest_client.slack`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:mod:`tornado_rest_client.clients.slack`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A simple Slack API client that provides basic message sending capabilities.
 Note, many more functions can be added to this class, but initially its very
@@ -34,6 +34,11 @@ Usage:
     ...     unfurl_links=True,
     ...     unfurl_media=True)
     >>> print ('Message sent? %s' % api.check_results(ret))
+
+.. autoclass:: Slack
+   :members:
+   :inherited-members:
+   :show-inheritance:
 
 """
 
@@ -59,8 +64,28 @@ class Error(exceptions.BaseException):
 
 class Slack(api.RestConsumer):
 
-    _ENDPOINT = 'https://api.slack.com'
-    _CONFIG = {
+    """Simple Slack API Client.
+
+    This example API client has very limited functionality -- basically it
+    implements the `/api/auth.test` and `/api/chat.postMessage` functions.
+
+    .. py:method:: auth_test
+
+      Accesses https://api.slack.com/api/auth.test
+
+      .. py:method:: http_post
+
+    .. py:method:: chat_postMessage
+
+      Accesses https://api.slack.com/api/chat.postMessage
+
+      .. py:method:: http_post(channel, text, username[, as_user, parse,
+        link_names, attachments, unfurl_links, unfurl_media, icon_url,
+        icon_emoji])
+    """
+
+    ENDPOINT = 'https://api.slack.com'
+    CONFIG = {
         'attrs': {
             'auth_test': {
                 'path': '/api/auth.test',

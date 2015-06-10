@@ -38,7 +38,7 @@ class RestClientTest(api.RestClient):
     """Fake web client object for unit tests."""
 
     @gen.coroutine
-    @api._retry
+    @api.retry
     def fetch(self, url, method, params={},
               auth_username=None, auth_password=None):
         # Turn all the iputs into a JSON dict and return them
@@ -49,7 +49,7 @@ class RestClientTest(api.RestClient):
 
 class RestConsumerTest(api.RestConsumer):
 
-    _CONFIG = {
+    CONFIG = {
         'attrs': {
             'testA': {
                 'path': '/testA',
@@ -66,12 +66,12 @@ class RestConsumerTest(api.RestConsumer):
             }
         }
     }
-    _ENDPOINT = 'http://unittest.com'
+    ENDPOINT = 'http://unittest.com'
 
 
 class RestConsumerTestBasicAuthed(RestConsumerTest):
-    _CONFIG = dict(RestConsumerTest._CONFIG)
-    _CONFIG['auth'] = {
+    CONFIG = dict(RestConsumerTest.CONFIG)
+    CONFIG['auth'] = {
         'user': 'username',
         'pass': 'password'
     }
@@ -87,9 +87,9 @@ class TestRetry(testing.AsyncTestCase):
 
         class FailingClass():
 
-            """Test class that is intended for @_retry decorator"""
+            """Test class that is intended for @retry decorator"""
 
-            _EXCEPTIONS = {
+            EXCEPTIONS = {
                 TestException: {
                     'cruel': None  # Retry during cruelty
                 }
@@ -98,7 +98,7 @@ class TestRetry(testing.AsyncTestCase):
             _call_count = 0
 
             @gen.coroutine
-            @api._retry
+            @api.retry
             def func(self):
                 self._call_count = self._call_count + 1
                 raise TestException('Goodbye cruel world...')
@@ -118,9 +118,9 @@ class TestRetry(testing.AsyncTestCase):
 
         class FailingClass():
 
-            """Test class that is intended for @_retry decorator"""
+            """Test class that is intended for @retry decorator"""
 
-            _EXCEPTIONS = {
+            EXCEPTIONS = {
                 TestException: {
                     'cruel': None  # Retry during cruelty
                 }
@@ -129,7 +129,7 @@ class TestRetry(testing.AsyncTestCase):
             _call_count = 0
 
             @gen.coroutine
-            @api._retry(delay=0, retries=7)
+            @api.retry(delay=0, retries=7)
             def func(self):
                 self._call_count = self._call_count + 1
                 raise TestException('Goodbye cruel world...')
@@ -305,7 +305,7 @@ class TestRestClient(testing.AsyncTestCase):
     @testing.gen_test
     def test_fetch_unexpected_failure_raises_exc_and_called_once(self):
         # Wipe out the 'default' http error handling config for this test.
-        self.client._EXCEPTIONS = {httpclient.HTTPError: {}}
+        self.client.EXCEPTIONS = {httpclient.HTTPError: {}}
         e = httpclient.HTTPError(300, 'Unexpected')
         self.http_client_mock.fetch.side_effect = e
         with self.assertRaises(httpclient.HTTPError):
