@@ -39,7 +39,6 @@ Usage:
    :members:
    :inherited-members:
    :show-inheritance:
-
 """
 
 import logging
@@ -117,13 +116,13 @@ class Slack(api.RestConsumer):
         error codes in the return results. This method returns True or False
         based on those results.
 
-        Args:
-            result: A return dict from Slack
+        :param dict result: A return dict from Slack
 
-        Raises:
-            InvalidCredentials if the creds are bad
-            Error exception on any other value
-            True/False if the API call succeeded or failed without error
+        :raises InvalidCredentials: if the creds are bad
+        :raises Error: exception on any other value
+        :raises RequestFailure: response with no `ok` field
+        :return: If the API call succeeded or failed without error
+        :rtype: bool
         """
         try:
             if result.get('ok', False):
