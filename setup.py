@@ -148,7 +148,7 @@ setup(
     long_description=open('%s/README.rst' % DIR).read(),
     author='Nextdoor Engineering',
     author_email='eng@nextdoor.com',
-    url='https://github.com/Nextdoor/tornado-rest-client',
+    url='https://github.com/Nextdoor/tornado_rest_client',
     download_url='http://pypi.python.org/pypi/%s#downloads' % PACKAGE,
     license='Apache License, Version 2.0',
     keywords='apache',
