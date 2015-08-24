@@ -7,7 +7,7 @@ URLs and HTTP methods inside a `dict`, without writing any actual python
 methods.
 
 HTTPBin RestConsumer
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: python
 
@@ -44,7 +44,7 @@ HTTPBin RestConsumer
     class HTTPBinGetThenPost(object):
         def __init__(self, \*args, \**kwargs):
             super(HTTPBinGetThenPost, self).__init__(\*args, \**kwargs)
-            self._api = HTTPBinRestClient()
+            self._api = HTTPBinRestClient(timeout=60)
 
         @gen.coroutine
         def execute(self):

@@ -416,10 +416,17 @@ class RestClient(object):
         }
     }
 
-    def __init__(self, client=None, headers=None):
+    # Combined Connect and Request Timeout settings. Note, None
+    # is the default -- but actually times out after 20s (due to
+    # a bug in Tornado). Use a very high number or 0 to indicate no
+    # timeout.
+    TIMEOUT = None
+
+    def __init__(self, client=None, headers=None, timeout=TIMEOUT):
         self._client = client or httpclient.AsyncHTTPClient()
         self._private_kwargs = ['auth_password']
         self.headers = headers
+        self.timeout = timeout
 
     def _generate_escaped_url(self, url, args):
         """Generates a fully escaped URL string.
@@ -486,6 +493,8 @@ class RestClient(object):
             auth_username=auth_username,
             auth_password=auth_password,
             follow_redirects=True,
+            request_timeout=self.timeout,
+            connect_timeout=self.timeout,
             max_redirects=10)
 
         # Execute the request and raise any exception. Exceptions are not
