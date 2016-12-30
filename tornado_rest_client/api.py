@@ -132,7 +132,7 @@ def retry(func=None, retries=3, delay=0.25):
                     if matched_exc and matched_exc[0] is not None:
                         exception = matched_exc[0]
                         log.debug('Matched exception: %s' % exception)
-                        raise exception(error)
+                        raise exception(e)
                     elif matched_exc and matched_exc[0] is None:
                         log.debug('Exception is retryable!')
                         pass

@@ -180,8 +180,8 @@ class TestRestConsumer(testing.AsyncTestCase):
 
         # the path with an arg must exist as an access method, and fail if you
         # don't supply the arg.
-        with self.assertRaises(TypeError):
-            test_consumer.test_path_with_new_access_type_with_res()
+        self.assertFalse(
+            callable(test_consumer.test_path_with_new_access_type_with_res))
 
         # with arg, it should pass
         ret = test_consumer.test_path_with_new_access_type
