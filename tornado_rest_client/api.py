@@ -278,12 +278,15 @@ class RestConsumer(object):
     #: * *http_methods*: A dictionary of HTTP methods that are supported.
     #: * *attrs*: A dictionary of other methods to create that reference other
     #:   API URLs.
-    #:
+    #: * *new*: Set to True if you want to create an access property rather
+    #:   an access method. Only works if your path has no token replacement in
+    #:   it.
     #:
     #: This data can be nested as much as you'd like
     #:
     #: >>> CONFIG = {
     #: ...     'path': '/', 'http_methods': {'get': {}},
+    #: ...     'new': True,
     #: ...     'attrs': {
     #: ...         'getter': {'path': '/get', 'htpt_methods': {'get': {}}},
     #: ...         'poster': {'path': '/post', 'htpt_methods': {'post': {}}},
@@ -376,7 +379,16 @@ class RestConsumer(object):
 
         for name in self._attrs.keys():
             method = create_consumer_method(name, self._attrs[name])
-            setattr(self, name, types.MethodType(method, self, self.__class__))
+
+            if 'new' in self._attrs[name]:
+                try:
+                    setattr(self, name, method(self))
+                except TypeError:
+                    setattr(self, name, types.MethodType(method, self,
+                                                         self.__class__))
+            else:
+                setattr(self, name, types.MethodType(method, self,
+                                                     self.__class__))
 
 
 class RestClient(object):
