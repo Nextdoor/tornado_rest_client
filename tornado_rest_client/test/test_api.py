@@ -63,6 +63,16 @@ class RestConsumerTest(api.RestConsumer):
             'test_path_with_res': {
                 'path': '/test/%res%/info',
                 'http_methods': {'get': {}}
+            },
+            'test_path_with_new_access_type': {
+                'path': '/test/new',
+                'new': True,
+                'http_methods': {'get': {}}
+            },
+            'test_path_with_new_access_type_with_res': {
+                'path': '/test/%res/new',
+                'new': True,
+                'http_methods': {'get': {}}
             }
         }
     }
@@ -163,6 +173,19 @@ class TestRestConsumer(testing.AsyncTestCase):
         # with arg, it should pass
         ret = test_consumer.test_path_with_res(res='abcd')
         self.assertEquals(str(ret), '/test/abcd/info')
+
+    @testing.gen_test
+    def test_new_style_path_with_property_access(self):
+        test_consumer = RestConsumerTest(client=RestClientTest())
+
+        # the path with an arg must exist as an access method, and fail if you
+        # don't supply the arg.
+        self.assertFalse(
+            callable(test_consumer.test_path_with_new_access_type_with_res))
+
+        # with arg, it should pass
+        ret = test_consumer.test_path_with_new_access_type
+        self.assertEquals(str(ret), '/test/new')
 
     @testing.gen_test
     def test_http_method_get(self):

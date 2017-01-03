@@ -57,6 +57,7 @@ like this:
                 # Handles GET /cats, POST /cats
                 'cat_api': {
                     'path': '/cats',
+                    'new': True,
                     'http_methods': {
                         'get': {},
                         'post': {},
@@ -65,6 +66,13 @@ like this:
                     'attrs': {
                         'random': {
                             'path': '/cats/random',
+                            'new': True,
+                            'http_methods': {
+                                'get': {}
+                            }
+                        },
+                        'get': {
+                            'path': '/cats/%id%',
                             'http_methods': {
                                 'get': {}
                             }
@@ -81,16 +89,18 @@ Now, instantiating this object would provide methods that look like this:
     >>> cats = CatAPI()
     >>> cats
     CatAPI(/)
-    >>> cats.cat_api()
+    >>> cats.cat_api
     CatAPI(/cats)
-    >>> cats.cat_api().random()
+    >>> cats.cat_api.random
     CatAPI(/cats/random)
-    >>> cats.cat_api().random().http_get()
+    >>> cats.cat_api.random.http_get()
     <tornado.concurrent.Future object at 0x101f9e390>
-    >>> yield cats.cat_api().random().http_get()
+    >>> yield cats.cat_api.random().http_get()
     'Bob Marley!'
-    >>> yield cats.cat_api().http_post(cat_name='Skippy')
+    >>> yield cats.cat_api.http_post(cat_name='Skippy')
     { "status": "ok" }
+    >>> yield cats.cat_api.get(id='Bobby').http_get()
+    { "cat": "Bobby" }
 
 There are more details available inside the various doc modules below...
 
