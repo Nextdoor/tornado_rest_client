@@ -434,11 +434,20 @@ class RestClient(object):
     # timeout.
     TIMEOUT = None
 
+    # If the APi expects that you send a JSON body with data rather than
+    # passing url arguments, set this to true.
+    JSON_BODY = False
+
     def __init__(self, client=None, headers=None, timeout=TIMEOUT):
         self._client = client or httpclient.AsyncHTTPClient()
         self._private_kwargs = ['auth_password']
         self.headers = headers
         self.timeout = timeout
+
+        if self.JSON_BODY and not self.headers:
+            self.headers = {
+                'Content-Type': 'application/json'
+            }
 
     def _generate_escaped_url(self, url, args):
         """Generates a fully escaped URL string.
@@ -489,7 +498,10 @@ class RestClient(object):
         # modified URL string and pass that into the fetch() method.
         body = None
         if method in ('PUT', 'POST'):
-            body = urllib.urlencode(params) or None
+            if not self.JSON_BODY:
+                body = urllib.urlencode(params) or None
+            else:
+                body = json.dumps(params)
         elif method in ('GET', 'DELETE') and params:
             url = self._generate_escaped_url(url, params)
 
