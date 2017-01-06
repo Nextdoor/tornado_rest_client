@@ -294,6 +294,17 @@ class TestRestClient(testing.AsyncTestCase):
         self.http_client_mock.fetch.assert_called_once()
 
     @testing.gen_test
+    def test_fetch_post_with_args_and_json_body(self):
+        self.http_response_mock.body = '{"foo": "bar"}'
+        self.client.JSON_BODY = True
+        ret = yield self.client.fetch(
+            url='http://foo.com',
+            method='POST',
+            params={'foo': 'bar', 'baz': 'bat'})
+        self.assertEquals({'foo': 'bar'}, ret)
+        self.http_client_mock.fetch.assert_called_once()
+
+    @testing.gen_test
     def test_fetch_get_with_args(self):
         self.http_response_mock.body = '{"foo": "bar"}'
         ret = yield self.client.fetch(

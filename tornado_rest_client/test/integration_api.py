@@ -48,6 +48,11 @@ class HTTPBinRestConsumer(api.RestConsumer):
     ENDPOINT = 'http://httpbin.org'
 
 
+class JSONRestClient(api.RestClient):
+
+    JSON_BODY = True
+
+
 class HTTPBinRestConsumerBasicAuthed(HTTPBinRestConsumer):
 
     CONFIG = dict(HTTPBinRestConsumer.CONFIG)
@@ -98,6 +103,14 @@ class IntegrationRestConsumer(testing.AsyncTestCase):
         ret = yield httpbin.post().http_post(foo='bar', baz='bat')
         self.assertEquals(ret['url'], 'http://httpbin.org/post')
         self.assertEquals(ret['form'], {'foo': 'bar', 'baz': 'bat'})
+
+    @testing.gen_test(timeout=60)
+    def integration_post_json(self):
+        httpbin = HTTPBinRestConsumer(
+            client=JSONRestClient())
+        ret = yield httpbin.post().http_post(foo='bar', baz='bat')
+        self.assertEquals(ret['url'], 'http://httpbin.org/post')
+        self.assertEquals(ret['json'], {'foo': 'bar', 'baz': 'bat'})
 
     @testing.gen_test(timeout=60)
     def integration_put(self):
