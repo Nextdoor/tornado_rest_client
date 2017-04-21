@@ -2,10 +2,13 @@
 
 import unittest
 
+import six
+import six.moves
+
 
 class TestVersion(unittest.TestCase):
 
     def test_version(self):
         from tornado_rest_client import version
-        reload(version)
-        self.assertEquals(type(version.__version__), str)
+        six.moves.reload_module(version)
+        self.assertIsInstance(version.__version__, six.string_types)

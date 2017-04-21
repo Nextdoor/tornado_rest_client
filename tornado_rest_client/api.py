@@ -33,10 +33,11 @@ dynamically configures the object at instantiation time with the appropriate
    :show-inheritance:
 """
 
-import logging
-import types
-import urllib
 import functools
+import logging
+
+import six
+from six.moves import urllib
 
 from tornado import gen
 from tornado import httpclient
@@ -223,7 +224,7 @@ def create_consumer_method(name, config):
         # the RestConsumer parent object. This ensures that tokens replaced in
         # the 'path' variables are passed all the way down the instantiation
         # chain.
-        merged_kwargs = dict(self._kwargs.items() + kwargs.items())
+        merged_kwargs = dict(list(self._kwargs.items()) + list(kwargs.items()))
 
         return self.__class__(
             name=name,
@@ -365,7 +366,7 @@ class RestConsumer(object):
             method = create_http_method(full_method_name, name)
             setattr(self,
                     full_method_name,
-                    types.MethodType(method, self, self.__class__))
+                    six.create_bound_method(method, self))
 
     def _create_consumer_methods(self):
         """Creates access methods to the attributes in `self._attrs`.
@@ -384,11 +385,9 @@ class RestConsumer(object):
                 try:
                     setattr(self, name, method(self))
                 except TypeError:
-                    setattr(self, name, types.MethodType(method, self,
-                                                         self.__class__))
+                    setattr(self, name, six.create_bound_method(method, self))
             else:
-                setattr(self, name, types.MethodType(method, self,
-                                                     self.__class__))
+                setattr(self, name, six.create_bound_method(method, self))
 
 
 class RestClient(object):
@@ -464,10 +463,10 @@ class RestClient(object):
         """
 
         # Remove keys from the arguments where the value is None
-        args = dict((k, v) for k, v in args.iteritems() if v)
+        args = dict((k, v) for k, v in six.iteritems(args) if v)
 
         # Convert all Bool values to lowercase strings
-        for key, value in args.iteritems():
+        for key, value in six.iteritems(args):
             if type(value) is bool:
                 args[key] = str(value).lower()
 
@@ -499,7 +498,7 @@ class RestClient(object):
         body = None
         if method in ('PUT', 'POST'):
             if not self.JSON_BODY:
-                body = urllib.urlencode(params) or None
+                body = urllib.parse.urlencode(params) or None
             else:
                 body = json.dumps(params)
         elif method in ('GET', 'DELETE') and params:
