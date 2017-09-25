@@ -2,6 +2,12 @@
 
 import unittest
 
+try:
+    from importlib import reload
+except ImportError:
+    # py3 specific only
+    pass
+
 
 class TestVersion(unittest.TestCase):
 
