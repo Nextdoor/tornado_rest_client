@@ -70,7 +70,7 @@ class IntegrationRestConsumer(testing.AsyncTestCase):
     def integration_base_get(self):
         httpbin = HTTPBinRestConsumer()
         ret = yield httpbin.http_get()
-        self.assertIn('DOCTYPE', ret)
+        self.assertIn('DOCTYPE'.encode('utf-8'), ret)
 
     @testing.gen_test(timeout=60)
     def integration_get_json(self):
