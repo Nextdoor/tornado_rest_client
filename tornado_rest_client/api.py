@@ -35,8 +35,12 @@ dynamically configures the object at instantiation time with the appropriate
 
 import logging
 import types
-import urllib.request, urllib.parse, urllib.error
 import functools
+
+try:
+    from urllib import urlencode
+except ImportError:
+    from urllib.parse import urlencode
 
 from tornado import gen
 from tornado import httpclient
@@ -503,7 +507,7 @@ class RestClient(object):
         body = None
         if method in ('PUT', 'POST'):
             if not self.JSON_BODY:
-                body = urllib.parse.urlencode(params) or None
+                body = urlencode(params) or None
             else:
                 body = json.dumps(params)
         elif method in ('GET', 'DELETE') and params:
