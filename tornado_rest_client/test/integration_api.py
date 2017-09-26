@@ -1,5 +1,8 @@
 """Integration tests for the tornado_rest_client.api module"""
 
+import six
+from six.moves import urllib
+
 from tornado import testing
 from tornado import httpclient
 
@@ -70,7 +73,7 @@ class IntegrationRestConsumer(testing.AsyncTestCase):
     def integration_base_get(self):
         httpbin = HTTPBinRestConsumer()
         ret = yield httpbin.http_get()
-        self.assertIn('DOCTYPE'.encode('utf-8'), ret)
+        self.assertIn(six.b('DOCTYPE'), ret)
 
     @testing.gen_test(timeout=60)
     def integration_get_json(self):
@@ -95,7 +98,13 @@ class IntegrationRestConsumer(testing.AsyncTestCase):
     def integration_get_with_args(self):
         httpbin = HTTPBinRestConsumer()
         ret = yield httpbin.get().http_get(foo='bar', baz='bat')
-        self.assertEquals(ret['url'], 'http://httpbin.org/get?baz=bat&foo=bar')
+
+        split_url = urllib.parse.urlsplit(ret['url'])
+        self.assertEquals(dict(urllib.parse.parse_qsl(split_url.query)),
+                          dict(foo='bar', baz='bat'))
+        self.assertEquals(split_url.scheme, 'http')
+        self.assertEquals(split_url.netloc, 'httpbin.org')
+        self.assertEquals(split_url.path, '/get')
 
     @testing.gen_test(timeout=60)
     def integration_post(self):
@@ -117,7 +126,8 @@ class IntegrationRestConsumer(testing.AsyncTestCase):
         httpbin = HTTPBinRestConsumer()
         ret = yield httpbin.put().http_put(foo='bar', baz='bat')
         self.assertEquals(ret['url'], 'http://httpbin.org/put')
-        self.assertEquals(ret['data'], 'foo=bar&baz=bat')
+        self.assertEquals(dict(urllib.parse.parse_qsl(ret['data'])),
+                          dict(foo='bar', baz='bat'))
 
     @testing.gen_test(timeout=60)
     def integration_delete(self):

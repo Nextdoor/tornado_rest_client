@@ -2,3 +2,4 @@
 tornado>=4
 simplejson
 retrying
+six

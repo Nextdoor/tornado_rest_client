@@ -33,19 +33,15 @@ dynamically configures the object at instantiation time with the appropriate
    :show-inheritance:
 """
 
-import logging
-import types
 import functools
+import logging
 
-try:
-    from urllib import urlencode
-except ImportError:
-    from urllib.parse import urlencode
-
+from six.moves import urllib
 from tornado import gen
 from tornado import httpclient
 from tornado import httputil
 import simplejson as json
+import six
 
 from tornado_rest_client import utils
 from tornado_rest_client import exceptions
@@ -367,7 +363,7 @@ class RestConsumer(object):
         for name in list(self._http_methods.keys()):
             full_method_name = 'http_%s' % name
             method = create_http_method(full_method_name, name)
-            setattr(self, full_method_name, self._get_method_type(method))
+            setattr(self, full_method_name, self._get_method(method))
 
     def _create_consumer_methods(self):
         """Creates access methods to the attributes in `self._attrs`.
@@ -386,17 +382,13 @@ class RestConsumer(object):
                 try:
                     setattr(self, name, method(self))
                 except TypeError:
-                    setattr(self, name, self._get_method_type(method))
+                    setattr(self, name, self._get_method(method))
             else:
-                setattr(self, name, self._get_method_type(method))
+                setattr(self, name, self._get_method(method))
 
-    def _get_method_type(self, method):
-        try:
-            # Python 2.x
-            return types.MethodType(method, self, self.__class__)
-        except TypeError:
-            # Python 3.x
-            return types.MethodType(method, self)
+    def _get_method(self, method):
+        '''Pulled out into its own method so it can be easily overridden'''
+        return six.create_bound_method(method, self)
 
 
 class RestClient(object):
@@ -472,10 +464,10 @@ class RestClient(object):
         """
 
         # Remove keys from the arguments where the value is None
-        args = dict((k, v) for k, v in list(args.items()) if v)
+        args = dict((k, v) for k, v in six.iteritems(args) if v)
 
         # Convert all Bool values to lowercase strings
-        for key, value in list(args.items()):
+        for key, value in six.iteritems(args):
             if type(value) is bool:
                 args[key] = str(value).lower()
 
@@ -507,7 +499,7 @@ class RestClient(object):
         body = None
         if method in ('PUT', 'POST'):
             if not self.JSON_BODY:
-                body = urlencode(params) or None
+                body = urllib.parse.urlencode(params) or None
             else:
                 body = json.dumps(params)
         elif method in ('GET', 'DELETE') and params:
