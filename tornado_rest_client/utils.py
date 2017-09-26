@@ -68,14 +68,14 @@ def populate_with_tokens(string, tokens, left_wrapper='%', right_wrapper='%',
     # First things first, swap out all instances of %<str>% with any matching
     # token variables found. If no items are in the hash (none, empty hash,
     # etc), then skip this.
-    allowed_types = six.string_types + (bool, int, float)
+    allowed_types = six.string_types + (six.text_type, str, bool, int, float)
 
     if tokens:
         for k, v in six.iteritems(tokens):
 
             if type(v) not in allowed_types:
-                log.warning('Token %s=%s is not in allowed types: %s' % (
-                    k, v, allowed_types))
+                log.warning('Token %s=%s (%s)is not in allowed types: %s' % (
+                    k, v, type(v), allowed_types))
                 continue
 
             string = string.replace(
