@@ -35,7 +35,7 @@ dynamically configures the object at instantiation time with the appropriate
 
 import logging
 import types
-import urllib
+from future.moves.urllib.parse import urlencode
 import functools
 
 from tornado import gen
@@ -438,13 +438,17 @@ class RestClient(object):
     # passing url arguments, set this to true.
     JSON_BODY = False
 
-    def __init__(self, client=None, headers=None, timeout=TIMEOUT):
+    def __init__(self, client=None, headers=None, timeout=TIMEOUT,
+                 json=None, allow_nonstandard_methods=False):
         self._client = client or httpclient.AsyncHTTPClient()
         self._private_kwargs = ['auth_password']
         self.headers = headers
         self.timeout = timeout
+        self.allow_nonstandard_methods = allow_nonstandard_methods
+        self.json = json
 
-        if self.JSON_BODY and not self.headers:
+        if ((self.json is True or self.JSON_BODY) and self.json is not False) \
+           and not self.headers:
             self.headers = {
                 'Content-Type': 'application/json'
             }
@@ -480,7 +484,7 @@ class RestClient(object):
     @gen.coroutine
     @retry
     def fetch(self, url, method, params={},
-              auth_username=None, auth_password=None):
+              auth_username=None, auth_password=None, timeout=None):
         """Executes a web request asynchronously and yields the body.
 
         :param str url: The full url path of the API call
@@ -496,10 +500,13 @@ class RestClient(object):
         # args directly into the ch() method and let it take care of
         # things. If we're doing a GET/DELETE though, convert kwargs into a
         # modified URL string and pass that into the fetch() method.
+        if timeout is None:
+            timeout = self.timeout
         body = None
         if method in ('PUT', 'POST'):
-            if not self.JSON_BODY:
-                body = urllib.urlencode(params) or None
+            if not ((self.json is True or self.JSON_BODY) and
+                    self.json is not False):
+                body = urlencode(params)
             else:
                 body = json.dumps(params)
         elif method in ('GET', 'DELETE') and params:
@@ -517,8 +524,9 @@ class RestClient(object):
             auth_username=auth_username,
             auth_password=auth_password,
             follow_redirects=True,
-            request_timeout=self.timeout,
-            connect_timeout=self.timeout,
+            request_timeout=timeout,
+            connect_timeout=timeout,
+            allow_nonstandard_methods=self.allow_nonstandard_methods,
             max_redirects=10)
 
         # Execute the request and raise any exception. Exceptions are not
