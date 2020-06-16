@@ -70,19 +70,19 @@ class IntegrationRestConsumer(testing.AsyncTestCase):
     def integration_base_get(self):
         httpbin = HTTPBinRestConsumer()
         ret = yield httpbin.http_get()
-        self.assertIn('DOCTYPE', ret)
+        self.assertIn('DOCTYPE', str(ret))
 
     @testing.gen_test(timeout=60)
     def integration_get_json(self):
         httpbin = HTTPBinRestConsumer()
         ret = yield httpbin.get().http_get()
-        self.assertEquals(ret['url'], 'http://httpbin.org/get')
+        self.assertEqual(ret['url'], 'http://httpbin.org/get')
 
     @testing.gen_test(timeout=60)
     def integration_get_basic_auth(self):
         httpbin = HTTPBinRestConsumerBasicAuthed()
         ret = yield httpbin.basic_auth().http_get()
-        self.assertEquals(
+        self.assertEqual(
             ret, {'authenticated': True, 'user': 'username'})
 
     @testing.gen_test(timeout=60)
@@ -95,35 +95,35 @@ class IntegrationRestConsumer(testing.AsyncTestCase):
     def integration_get_with_args(self):
         httpbin = HTTPBinRestConsumer()
         ret = yield httpbin.get().http_get(foo='bar', baz='bat')
-        self.assertEquals(ret['url'], 'http://httpbin.org/get?baz=bat&foo=bar')
+        self.assertEqual(ret['url'], 'http://httpbin.org/get?baz=bat&foo=bar')
 
     @testing.gen_test(timeout=60)
     def integration_post(self):
         httpbin = HTTPBinRestConsumer()
         ret = yield httpbin.post().http_post(foo='bar', baz='bat')
-        self.assertEquals(ret['url'], 'http://httpbin.org/post')
-        self.assertEquals(ret['form'], {'foo': 'bar', 'baz': 'bat'})
+        self.assertEqual(ret['url'], 'http://httpbin.org/post')
+        self.assertEqual(ret['form'], {'foo': 'bar', 'baz': 'bat'})
 
     @testing.gen_test(timeout=60)
     def integration_post_json(self):
         httpbin = HTTPBinRestConsumer(
             client=JSONRestClient())
         ret = yield httpbin.post().http_post(foo='bar', baz='bat')
-        self.assertEquals(ret['url'], 'http://httpbin.org/post')
-        self.assertEquals(ret['json'], {'foo': 'bar', 'baz': 'bat'})
+        self.assertEqual(ret['url'], 'http://httpbin.org/post')
+        self.assertEqual(ret['json'], {'foo': 'bar', 'baz': 'bat'})
 
     @testing.gen_test(timeout=60)
     def integration_put(self):
         httpbin = HTTPBinRestConsumer()
         ret = yield httpbin.put().http_put(foo='bar', baz='bat')
-        self.assertEquals(ret['url'], 'http://httpbin.org/put')
-        self.assertEquals(ret['data'], 'foo=bar&baz=bat')
+        self.assertEqual(ret['url'], 'http://httpbin.org/put')
+        self.assertEqual(ret['data'], 'foo=bar&baz=bat')
 
     @testing.gen_test(timeout=60)
     def integration_delete(self):
         httpbin = HTTPBinRestConsumer()
         ret = yield httpbin.delete().http_delete(foo='bar', baz='bat')
-        self.assertEquals(
+        self.assertEqual(
             ret['url'],
             'http://httpbin.org/delete?baz=bat&foo=bar')
 
