@@ -157,6 +157,7 @@ setup(
     tests_require=open('%s/requirements.test.txt' % DIR).readlines(),
     setup_requires=[],
     install_requires=open('%s/requirements.txt' % DIR).readlines(),
+    python_requires='~=3.7',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Topic :: Software Development',
