@@ -29,7 +29,7 @@ class TestSlack(testing.AsyncTestCase):
                 "ts": "1423092527.000006"
             }
         }
-        self.assertEquals(True, api.check_results(results))
+        self.assertEqual(True, api.check_results(results))
 
     def test_check_results_with_invalid_creds(self):
         api = slack.Slack(token='unittest')

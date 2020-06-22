@@ -21,10 +21,8 @@ Common package for utility functions.
 
 import logging
 import re
-import time
 
 from tornado import gen
-from tornado import ioloop
 
 __author__ = 'Matt Wise (matt@nextdoor.com)'
 
@@ -38,8 +36,7 @@ def tornado_sleep(seconds=1.0):
     Args:
         seconds: Float seconds. Default 1.0
     """
-    yield gen.Task(ioloop.IOLoop.current().add_timeout,
-                   time.time() + seconds)
+    yield gen.sleep(seconds)
 
 
 def populate_with_tokens(string, tokens, left_wrapper='%', right_wrapper='%',
@@ -66,9 +63,9 @@ def populate_with_tokens(string, tokens, left_wrapper='%', right_wrapper='%',
     # First things first, swap out all instances of %<str>% with any matching
     # token variables found. If no items are in the hash (none, empty hash,
     # etc), then skip this.
-    allowed_types = (str, unicode, bool, int, float)
+    allowed_types = (str, bool, int, float)
     if tokens:
-        for k, v in tokens.iteritems():
+        for k, v in tokens.items():
 
             if type(v) not in allowed_types:
                 log.warning('Token %s=%s is not in allowed types: %s' % (

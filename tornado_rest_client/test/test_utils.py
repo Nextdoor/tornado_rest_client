@@ -14,28 +14,28 @@ class TestUtils(unittest.TestCase):
         string = 'Unit %UNIT_TEST% Test'
         expect = 'Unit FOOBAR Test'
         result = utils.populate_with_tokens(string, tokens)
-        self.assertEquals(result, expect)
+        self.assertEqual(result, expect)
 
     def test_populate_with_unicode_env(self):
-        tokens = {'UNIT_TEST': u'FOOBAR'}
+        tokens = {'UNIT_TEST': 'FOOBAR'}
         string = 'Unit %UNIT_TEST% Test'
         expect = 'Unit FOOBAR Test'
         result = utils.populate_with_tokens(string, tokens)
-        self.assertEquals(result, expect)
+        self.assertEqual(result, expect)
 
     def test_populate_with_bool(self):
         tokens = {'UNIT_TEST': True}
         string = 'Unit %UNIT_TEST% Test'
         expect = 'Unit True Test'
         result = utils.populate_with_tokens(string, tokens)
-        self.assertEquals(result, expect)
+        self.assertEqual(result, expect)
 
     def test_populate_with_bogus_data_OK(self):
         tokens = {'UNIT_TEST': {'foobar': 'bat'}}
         string = 'Unit %UNIT_TEST% Test'
         expect = 'Unit %UNIT_TEST% Test'
         result = utils.populate_with_tokens(string, tokens, strict=False)
-        self.assertEquals(result, expect)
+        self.assertEqual(result, expect)
 
     def test_populate_with_env_with_missing_variables(self):
         os.environ['UNIT_TEST'] = 'FOOBAR'
@@ -47,7 +47,7 @@ class TestUtils(unittest.TestCase):
         tokens = {'foo': False}
         string = 'Unit test'
         result = utils.populate_with_tokens(string, tokens)
-        self.assertEquals(result, string)
+        self.assertEqual(result, string)
 
     def test_populate_with_not_strict(self):
         tokens = {'UNIT_TEST': 'FOOBAR'}
@@ -57,7 +57,7 @@ class TestUtils(unittest.TestCase):
             string, tokens,
             left_wrapper='{', right_wrapper='}',
             strict=False)
-        self.assertEquals(result, expect)
+        self.assertEqual(result, expect)
 
 
 class TestAsync(testing.AsyncTestCase):
