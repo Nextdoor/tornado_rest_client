@@ -1,6 +1,16 @@
 language: python
 python:
-  - "3.7"
+- '3.7'
 install:
-  - make build
+- make build
 script: make test
+deploy:
+  provider: pypi
+  user: __token__
+  on:
+    tags: true
+    python: '3.7'
+    condition: "$TRAVIS_TAG =~ ^v[0-9]+.[0-9]+.[0-9]+[a-z]?$"
+    repo: Nextdoor/tornado_rest_client
+  password:
+    secure: mGMDChc5l0H7Pbko/SI2fup46bXPUsWqLgpXk+2SlhWFocy1m06abkOaWoGuxhThob5vG+ek1gZ3bkZW5C88NMQMzgJZmXIyBFURjvl/PGhW4+DsDLW6r/J7oM8oMB8ge15QWD5j1uZfi+Ks7fRZkdzWoolto0pwu3c34ZQPbNC2169OdJZlkmJA9RG8/49UWjB+Z5LtQpqPtfFcxd1slnbs0VL550B4aWFkSzM0xC8rCemvd+7AgpaQne6jGJusJf9EOfe6iY7uHwEzLRB62whqJpJeVn70NHCwQrDQNVGX5lZrOqIOTabvRH1LNRTLiTJLwN3pSkAmZF2kSD2TCo9L0s4bVtZ3ih/lkID1TXKR0BrRtURQxnQiKvImx1Z6aXpFRMeOtX42nR1FkGJBrpE6E6izg6sC+XGUnTrGG1gR7i5hbLWxrP30KwZBLjI9G/RTT8u890DWZzVRv32aP5CJbK977MeZvICgUuIjGxO7bRphhd2R2tKsAV5WQFFwswcgBgI5kZed6w+rOrWRg+f4IQbqDN3X3OO4RREA0QeLTkwjzFcrO8wN9dEuwbYCyOVreeTz5E/olP+jE+DzrIYtbleVRygvcy/22ux3mV7S051lGAo+Y8kGfqHXR4mcCa9NMSMo1HK2xbohEDGsZHwf6EEbYQAv0WTrkJFp4vo=
