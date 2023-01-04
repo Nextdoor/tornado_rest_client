@@ -38,13 +38,13 @@ dynamically configures the object at instantiation time with the appropriate
 
 import logging
 import types
-from future.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 import functools
 
 from tornado import gen
 from tornado import httpclient
 from tornado import httputil
-import simplejson as json
+import json
 
 from tornado_rest_client import utils
 from tornado_rest_client import exceptions
