@@ -1,5 +1,4 @@
-# General App Requirements
-tornado>=4
+tornado>=4.0.0
 simplejson
 retrying
 future
