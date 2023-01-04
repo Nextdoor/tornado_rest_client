@@ -24,13 +24,16 @@ dynamically configures the object at instantiation time with the appropriate
 .. autoclass:: RestConsumer
    :members:
    :private-members:
+   :noindex:
 .. autoclass:: RestClient
    :members:
    :private-members:
+   :noindex:
 .. autoclass:: SimpleTokenRestClient
    :members:
    :inherited-members:
    :show-inheritance:
+   :noindex:
 """
 
 import logging
@@ -48,7 +51,7 @@ from tornado_rest_client import exceptions
 
 log = logging.getLogger(__name__)
 
-__author__ = 'Matt Wise <matt@nextdoor.com>'
+__author__ = "Matt Wise <matt@nextdoor.com>"
 
 
 def retry(func=None, retries=3, delay=0.25):
@@ -74,6 +77,7 @@ def retry(func=None, retries=3, delay=0.25):
     ... def some_func(self):
     ...     yield ...
     """
+
     def decorate(func):
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
@@ -81,7 +85,7 @@ def retry(func=None, retries=3, delay=0.25):
             i = 1
 
             # Get a list of private kwargs to mask
-            private_kwargs = getattr(self, '_private_kwargs', [])
+            private_kwargs = getattr(self, "_private_kwargs", [])
 
             # For security purposes, create a patched kwargs string that
             # removes passwords from the arguments. This is never guaranteed to
@@ -90,13 +94,15 @@ def retry(func=None, retries=3, delay=0.25):
             safe_kwargs = dict(kwargs)
             remove = [k for k in safe_kwargs if k in private_kwargs]
             for k in remove:
-                safe_kwargs[k] = '****'
+                safe_kwargs[k] = "****"
 
             while True:
                 # Don't log out the first try as a 'Try' ... just do it
                 if i > 1:
-                    log.debug('Try (%s/%s) of %s(%s, %s)' %
-                              (i, retries, func, args, safe_kwargs))
+                    log.debug(
+                        "Try (%s/%s) of %s(%s, %s)"
+                        % (i, retries, func, args, safe_kwargs)
+                    )
 
                 # Attempt the method. Catch any exception listed in
                 # self.EXCEPTIONS.
@@ -106,13 +112,13 @@ def retry(func=None, retries=3, delay=0.25):
                     raise gen.Return(ret)
                 except tuple(self.EXCEPTIONS.keys()) as e:
                     error = str(e)
-                    if hasattr(e, 'message'):
+                    if hasattr(e, "message"):
                         error = e.message
-                    log.warning('Exception raised on try %s: %s' % (i, error))
+                    log.warning("Exception raised on try %s: %s" % (i, error))
 
                     # If we've run out of retry attempts, raise the exception
                     if i >= retries:
-                        log.debug('Raising exception: %s' % e)
+                        log.debug("Raising exception: %s" % e)
                         raise e
 
                     # Gather the config for this exception-type from
@@ -123,34 +129,37 @@ def retry(func=None, retries=3, delay=0.25):
                     # An empty string for the key is the default exception
                     # It's optional, but can match before others match, so we
                     # pop it before searching.
-                    default_exc = exc_conf.pop('', False)
-                    log.debug('Searching through %s' % exc_conf)
-                    matched_exc = [exc for key, exc in list(exc_conf.items())
-                                   if key in str(e)]
+                    default_exc = exc_conf.pop("", False)
+                    log.debug("Searching through %s" % exc_conf)
+                    matched_exc = [
+                        exc for key, exc in list(exc_conf.items()) if key in str(e)
+                    ]
 
-                    log.debug('Matched exceptions: %s' % matched_exc)
+                    log.debug("Matched exceptions: %s" % matched_exc)
                     if matched_exc and matched_exc[0] is not None:
                         exception = matched_exc[0]
-                        log.debug('Matched exception: %s' % exception)
+                        log.debug("Matched exception: %s" % exception)
                         raise exception(e)
                     elif matched_exc and matched_exc[0] is None:
-                        log.debug('Exception is retryable!')
+                        log.debug("Exception is retryable!")
                         pass
                     elif default_exc is not False:
                         raise default_exc(str(e))
                     elif default_exc is False:
                         # Reaching this part means no exception was matched
                         # and no default was specified.
-                        log.debug('No explicit behavior for this exception'
-                                  ' found. Raising.')
+                        log.debug(
+                            "No explicit behavior for this exception" " found. Raising."
+                        )
                         raise e
 
                     # Must have been a retryable exception. Retry.
                     i = i + 1
-                    log.debug('Retrying in %s...' % delay)
+                    log.debug("Retrying in %s..." % delay)
                     yield utils.tornado_sleep(delay)
 
-                log.debug('Retrying..')
+                log.debug("Retrying..")
+
         return wrapper
 
     # http://stackoverflow.com/questions/3888158/
@@ -179,14 +188,14 @@ def create_http_method(name, http_method):
     def method(self, *args, **kwargs):
         # We don't support un-named args. Throw an exception.
         if args:
-            raise exceptions.InvalidOptions('Must pass named-args (kwargs)')
+            raise exceptions.InvalidOptions("Must pass named-args (kwargs)")
 
         ret = yield self._client.fetch(
-            url='%s%s' % (self.ENDPOINT, self._path),
+            url="%s%s" % (self.ENDPOINT, self._path),
             method=http_method.upper(),
             params=kwargs,
-            auth_username=self.CONFIG.get('auth', {}).get('user'),
-            auth_password=self.CONFIG.get('auth', {}).get('pass')
+            auth_username=self.CONFIG.get("auth", {}).get("user"),
+            auth_password=self.CONFIG.get("auth", {}).get("pass"),
         )
         raise gen.Return(ret)
 
@@ -229,7 +238,9 @@ def create_consumer_method(name, config):
             name=name,
             config=self._attrs[name],
             client=self._client,
-            *args, **merged_kwargs)
+            *args,
+            **merged_kwargs
+        )
 
     method.__name__ = name
     return method
@@ -301,9 +312,9 @@ class RestConsumer(object):
         config = config or self.CONFIG
 
         # Get the basic options for this particular REST endpoint access object
-        self._path = config.get('path', None)
-        self._http_methods = config.get('http_methods', None)
-        self._attrs = config.get('attrs', None)
+        self._path = config.get("path", None)
+        self._http_methods = config.get("http_methods", None)
+        self._attrs = config.get("attrs", None)
         self._kwargs = kwargs
 
         # If no client was supplied, then we use our default
@@ -320,11 +331,10 @@ class RestConsumer(object):
         self._create_consumer_methods()
 
         # Log some things
-        log.debug('%s/%s initialized' %
-                  (self.__class__.__name__, self._client))
+        log.debug("%s/%s initialized" % (self.__class__.__name__, self._client))
 
     def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__, self)
+        return "%s(%s)" % (self.__class__.__name__, self)
 
     def __str__(self):
         return str(self._path)
@@ -345,7 +355,7 @@ class RestConsumer(object):
         try:
             path = utils.populate_with_tokens(path, tokens)
         except LookupError as e:
-            msg = 'Path (%s), tokens: (%s) error: %s' % (path, tokens, e)
+            msg = "Path (%s), tokens: (%s) error: %s" % (path, tokens, e)
             raise TypeError(msg)
 
         return path
@@ -361,11 +371,9 @@ class RestConsumer(object):
             return
 
         for name in list(self._http_methods.keys()):
-            full_method_name = 'http_%s' % name
+            full_method_name = "http_%s" % name
             method = create_http_method(full_method_name, name)
-            setattr(self,
-                    full_method_name,
-                    types.MethodType(method, self))
+            setattr(self, full_method_name, types.MethodType(method, self))
 
     def _create_consumer_methods(self):
         """Creates access methods to the attributes in `self._attrs`.
@@ -380,7 +388,7 @@ class RestConsumer(object):
         for name in list(self._attrs.keys()):
             method = create_consumer_method(name, self._attrs[name])
 
-            if 'new' in self._attrs[name]:
+            if "new" in self._attrs[name]:
                 try:
                     setattr(self, name, method(self))
                 except TypeError:
@@ -412,17 +420,15 @@ class RestClient(object):
     #:
     EXCEPTIONS = {
         httpclient.HTTPError: {
-            '401': exceptions.InvalidCredentials,
-            '403': exceptions.InvalidCredentials,
-            '500': None,
-            '502': None,
-            '503': None,
-            '504': None,
-
+            "401": exceptions.InvalidCredentials,
+            "403": exceptions.InvalidCredentials,
+            "500": None,
+            "502": None,
+            "503": None,
+            "504": None,
             # Rrepresents a standard HTTP Timeout
-            '599': None,
-
-            '': exceptions.RecoverableFailure,
+            "599": None,
+            "": exceptions.RecoverableFailure,
         }
     }
 
@@ -436,20 +442,25 @@ class RestClient(object):
     # passing url arguments, set this to true.
     JSON_BODY = False
 
-    def __init__(self, client=None, headers=None, timeout=TIMEOUT,
-                 json=None, allow_nonstandard_methods=False):
+    def __init__(
+        self,
+        client=None,
+        headers=None,
+        timeout=TIMEOUT,
+        json=None,
+        allow_nonstandard_methods=False,
+    ):
         self._client = client or httpclient.AsyncHTTPClient()
-        self._private_kwargs = ['auth_password']
+        self._private_kwargs = ["auth_password"]
         self.headers = headers
         self.timeout = timeout
         self.allow_nonstandard_methods = allow_nonstandard_methods
         self.json = json
 
-        if ((self.json is True or self.JSON_BODY) and self.json is not False) \
-           and not self.headers:
-            self.headers = {
-                'Content-Type': 'application/json'
-            }
+        if (
+            (self.json is True or self.JSON_BODY) and self.json is not False
+        ) and not self.headers:
+            self.headers = {"Content-Type": "application/json"}
 
     def _generate_escaped_url(self, url, args):
         """Generates a fully escaped URL string.
@@ -475,14 +486,21 @@ class RestClient(object):
 
         # Now generate the URL
         full_url = httputil.url_concat(url, sorted(args.items()))
-        log.debug('Generated URL: %s' % full_url)
+        log.debug("Generated URL: %s" % full_url)
 
         return full_url
 
     @gen.coroutine
     @retry
-    def fetch(self, url, method, params={},
-              auth_username=None, auth_password=None, timeout=None):
+    def fetch(
+        self,
+        url,
+        method,
+        params={},
+        auth_username=None,
+        auth_password=None,
+        timeout=None,
+    ):
         """Executes a web request asynchronously and yields the body.
 
         :param str url: The full url path of the API call
@@ -501,17 +519,16 @@ class RestClient(object):
         if timeout is None:
             timeout = self.timeout
         body = None
-        if method in ('PUT', 'POST'):
-            if not ((self.json is True or self.JSON_BODY) and
-                    self.json is not False):
+        if method in ("PUT", "POST"):
+            if not ((self.json is True or self.JSON_BODY) and self.json is not False):
                 body = urlencode(params)
             else:
                 body = json.dumps(params)
-        elif method in ('GET', 'DELETE') and params:
+        elif method in ("GET", "DELETE") and params:
             url = self._generate_escaped_url(url, params)
 
         # Generate the full request URL and log out what we're doing...
-        log.debug('Making %s request to %s. Data: %s' % (method, url, body))
+        log.debug("Making %s request to %s. Data: %s" % (method, url, body))
 
         # Create the http_request object
         http_request = httpclient.HTTPRequest(
@@ -525,18 +542,19 @@ class RestClient(object):
             request_timeout=timeout,
             connect_timeout=timeout,
             allow_nonstandard_methods=self.allow_nonstandard_methods,
-            max_redirects=10)
+            max_redirects=10,
+        )
 
         # Execute the request and raise any exception. Exceptions are not
         # caught here because they are unique to the API endpoints, and thus
         # should be handled by the individual callers of this method.
-        log.debug('HTTP Request: %s' % http_request)
+        log.debug("HTTP Request: %s" % http_request)
         try:
             http_response = yield self._client.fetch(http_request)
         except httpclient.HTTPError as e:
-            log.critical('Request for %s failed: %s' % (url, e))
+            log.critical("Request for %s failed: %s" % (url, e))
             raise
-        log.debug('HTTP Response: %s' % http_response.body)
+        log.debug("HTTP Response: %s" % http_response.body)
 
         try:
             body = json.loads(http_response.body)
@@ -565,9 +583,9 @@ class SimpleTokenRestClient(RestClient):
 
     @gen.coroutine
     def fetch(self, *args, **kwargs):
-        if 'params' not in kwargs:
-            kwargs['params'] = {}
+        if "params" not in kwargs:
+            kwargs["params"] = {}
 
-        kwargs['params'].update(self._tokens)
+        kwargs["params"].update(self._tokens)
         ret = yield super(SimpleTokenRestClient, self).fetch(*args, **kwargs)
         raise gen.Return(ret)

@@ -24,7 +24,7 @@ import re
 
 from tornado import gen
 
-__author__ = 'Matt Wise (matt@nextdoor.com)'
+__author__ = "Matt Wise (matt@nextdoor.com)"
 
 log = logging.getLogger(__name__)
 
@@ -39,8 +39,9 @@ def tornado_sleep(seconds=1.0):
     yield gen.sleep(seconds)
 
 
-def populate_with_tokens(string, tokens, left_wrapper='%', right_wrapper='%',
-                         strict=True):
+def populate_with_tokens(
+    string, tokens, left_wrapper="%", right_wrapper="%", strict=True
+):
     """Insert token variables into the string.
 
     Will match any token wrapped in '%'s and replace it with the value of that
@@ -68,12 +69,14 @@ def populate_with_tokens(string, tokens, left_wrapper='%', right_wrapper='%',
         for k, v in tokens.items():
 
             if type(v) not in allowed_types:
-                log.warning('Token %s=%s is not in allowed types: %s' % (
-                    k, v, allowed_types))
+                log.warning(
+                    "Token %s=%s is not in allowed types: %s" % (k, v, allowed_types)
+                )
                 continue
 
             string = string.replace(
-                ('%s%s%s' % (left_wrapper, k, right_wrapper)), str(v))
+                ("%s%s%s" % (left_wrapper, k, right_wrapper)), str(v)
+            )
 
     # If we aren't strict, we return...
     if not strict:
@@ -81,10 +84,10 @@ def populate_with_tokens(string, tokens, left_wrapper='%', right_wrapper='%',
 
     # If we are strict, we check if we missed anything. If we did, raise an
     # exception.
-    missed_tokens = list(set(re.findall(r'%s[\w]+%s' %
-                             (left_wrapper, right_wrapper), string)))
+    missed_tokens = list(
+        set(re.findall(r"%s[\w]+%s" % (left_wrapper, right_wrapper), string))
+    )
     if missed_tokens:
-        raise LookupError(
-            'Found un-matched tokens in JSON string: %s' % missed_tokens)
+        raise LookupError("Found un-matched tokens in JSON string: %s" % missed_tokens)
 
     return string

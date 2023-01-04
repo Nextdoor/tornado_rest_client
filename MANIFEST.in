@@ -1,4 +1,2 @@
 include README.rst
-include CHANGELOG.md
 include requirements*
-recursive-include extras *

@@ -1,7 +1,18 @@
+# formatting
+black
+
+# testing
 nose
-mock
-pep8
-pyflakes
 coverage
-Sphinx==1.6.3
+pytest
+pytest-cov
+mock
+pyflakes
+
+# building
+setuptools
+build
+
+# docs
+Sphinx
 sphinx_rtd_theme

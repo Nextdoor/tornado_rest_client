@@ -1,28 +1,56 @@
 HERE = $(shell pwd)
-BIN = $(HERE)/bin
+
+VENV_CMD    := python3 -m venv
+VENV_DIR    := $(HERE)/.venv
+PYTHON      := $(VENV_DIR)/bin/python
+PYFLAKES    := $(VENV_DIR)/bin/pyflakes
+PYBLACK     := $(VENV_DIR)/bin/black
 
 BUILD_DIRS = bin .build build include lib lib64 man share package *.egg
 
-.PHONY: all build clean test docs
-
-all: build
+DRY ?= true
+ifneq ($(DRY),false)
+  PYBLACK_OPTS := --diff --check
+endif
 
 build: .build
 
-.build:
-	pip install -r requirements.txt -r requirements.test.txt
+.build: $(VENV_DIR)
 	touch .build
 
-clean:
-	find . -type f -name '*.pyc' -exec rm "{}" \;
+.PHONY: clean
+clean: $(VENV_DIR)
+	find tornado_rest_client -type f -name '*.pyc' -exec rm "{}" \;
 	rm -rf $(BUILD_DIRS)
-	$(MAKE) -C docs clean
+	PATH=$(VENV_DIR)/bin:$(PATH) $(MAKE) -C docs clean
 
-test: build docs
-	python setup.py test integration pep8 pyflakes
+.PHONY: lint_test_integration_docs
+lint_test_integration_docs: lint test integration docs
 
-integration: build
-	PYFLAKES_NODOCTEST=True python setup.py integration pep8 pyflakes
+.PHONY: lint
+lint: $(VENV_DIR)
+	$(PYBLACK) $(PYBLACK_OPTS) tornado_rest_client
 
-docs:
-	$(MAKE) -C docs html
+.PHONY: test
+test: $(VENV_DIR)
+	$(PYTHON) setup.py test
+	PYTHONPATH=$(HERE) $(PYFLAKES) tornado_rest_client
+
+.PHONY: integration
+integration: $(VENV_DIR)
+	$(PYTHON) setup.py integration
+	PYFLAKES_NODOCTEST=True PYTHONPATH=$(HERE) $(PYFLAKES) tornado_rest_client
+
+.PHONY: docs
+docs: $(VENV_DIR)
+	PATH=$(VENV_DIR)/bin:$(PATH) $(MAKE) -C docs html
+
+.PHONY: venv
+venv: $(VENV_DIR)
+
+$(VENV_DIR): requirements.txt requirements.test.txt
+	$(VENV_CMD) $(VENV_DIR)
+	$(PYTHON) -m pip install -U pip setuptools wheel
+	$(PYTHON) -m pip install -r requirements.test.txt
+	$(PYTHON) -m pip install -r requirements.txt
+	touch $(VENV_DIR)
