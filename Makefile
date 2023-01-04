@@ -3,6 +3,7 @@ HERE = $(shell pwd)
 VENV_CMD    := python3 -m venv
 VENV_DIR    := $(HERE)/.venv
 PYTHON      := $(VENV_DIR)/bin/python
+PYTEST      := $(VENV_DIR)/bin/pytest
 PYFLAKES    := $(VENV_DIR)/bin/pyflakes
 PYBLACK     := $(VENV_DIR)/bin/black
 
@@ -13,10 +14,9 @@ ifneq ($(DRY),false)
   PYBLACK_OPTS := --diff --check
 endif
 
-build: .build
-
-.build: $(VENV_DIR)
-	touch .build
+.PHONY: build
+build: $(VENV_DIR)
+	$(PYTHON) -m build
 
 .PHONY: clean
 clean: $(VENV_DIR)
@@ -24,22 +24,14 @@ clean: $(VENV_DIR)
 	rm -rf $(BUILD_DIRS)
 	PATH=$(VENV_DIR)/bin:$(PATH) $(MAKE) -C docs clean
 
-.PHONY: lint_test_integration_docs
-lint_test_integration_docs: lint test integration docs
-
 .PHONY: lint
 lint: $(VENV_DIR)
 	$(PYBLACK) $(PYBLACK_OPTS) tornado_rest_client
 
 .PHONY: test
 test: $(VENV_DIR)
-	$(PYTHON) setup.py test
+	PYTHONPATH=$(HERE) $(PYTEST) --cov=tornado_rest_client -v
 	PYTHONPATH=$(HERE) $(PYFLAKES) tornado_rest_client
-
-.PHONY: integration
-integration: $(VENV_DIR)
-	$(PYTHON) setup.py integration
-	PYFLAKES_NODOCTEST=True PYTHONPATH=$(HERE) $(PYFLAKES) tornado_rest_client
 
 .PHONY: docs
 docs: $(VENV_DIR)

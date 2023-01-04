@@ -2,8 +2,6 @@
 black
 
 # testing
-nose
-coverage
 pytest
 pytest-cov
 mock

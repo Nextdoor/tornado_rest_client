@@ -6,3 +6,7 @@
 .venv
 .build
 docs/.ropeproject
+dist/
+version.rst
+MANIFEST
+.pytest_cache
