@@ -1,17 +1,3 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# Copyright 2013 Nextdoor.com, Inc.
-
 """
 :mod:`tornado_rest_client.utils`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -70,13 +56,11 @@ def populate_with_tokens(
 
             if type(v) not in allowed_types:
                 log.warning(
-                    "Token %s=%s is not in allowed types: %s" % (k, v, allowed_types)
+                    "Token %s=%s is not in allowed types: %s", k, v, allowed_types
                 )
                 continue
 
-            string = string.replace(
-                ("%s%s%s" % (left_wrapper, k, right_wrapper)), str(v)
-            )
+            string = string.replace(f"{left_wrapper}{k}{right_wrapper}", str(v))
 
     # If we aren't strict, we return...
     if not strict:
@@ -85,9 +69,9 @@ def populate_with_tokens(
     # If we are strict, we check if we missed anything. If we did, raise an
     # exception.
     missed_tokens = list(
-        set(re.findall(r"%s[\w]+%s" % (left_wrapper, right_wrapper), string))
+        set(re.findall(rf"{left_wrapper}[\w]+{right_wrapper}", string))
     )
     if missed_tokens:
-        raise LookupError("Found un-matched tokens in JSON string: %s" % missed_tokens)
+        raise LookupError(f"Found un-matched tokens in JSON string: {missed_tokens}")
 
     return string

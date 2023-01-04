@@ -1,16 +1,3 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# Copyright 2014 Nextdoor.com, Inc
 """
 :mod:`tornado_rest_client.api`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -40,11 +27,12 @@ import logging
 import types
 from urllib.parse import urlencode
 import functools
+import json
+from typing import Dict, Optional
 
 from tornado import gen
 from tornado import httpclient
 from tornado import httputil
-import json
 
 from tornado_rest_client import utils
 from tornado_rest_client import exceptions
@@ -100,8 +88,7 @@ def retry(func=None, retries=3, delay=0.25):
                 # Don't log out the first try as a 'Try' ... just do it
                 if i > 1:
                     log.debug(
-                        "Try (%s/%s) of %s(%s, %s)"
-                        % (i, retries, func, args, safe_kwargs)
+                        "Try (%s/%s) of %s(%s, %s)", i, retries, func, args, safe_kwargs
                     )
 
                 # Attempt the method. Catch any exception listed in
@@ -114,11 +101,11 @@ def retry(func=None, retries=3, delay=0.25):
                     error = str(e)
                     if hasattr(e, "message"):
                         error = e.message
-                    log.warning("Exception raised on try %s: %s" % (i, error))
+                    log.warning("Exception raised on try %s: %s", i, error)
 
                     # If we've run out of retry attempts, raise the exception
                     if i >= retries:
-                        log.debug("Raising exception: %s" % e)
+                        log.debug("Raising exception: %s", e)
                         raise e
 
                     # Gather the config for this exception-type from
@@ -130,32 +117,31 @@ def retry(func=None, retries=3, delay=0.25):
                     # It's optional, but can match before others match, so we
                     # pop it before searching.
                     default_exc = exc_conf.pop("", False)
-                    log.debug("Searching through %s" % exc_conf)
+                    log.debug("Searching through %s", exc_conf)
                     matched_exc = [
                         exc for key, exc in list(exc_conf.items()) if key in str(e)
                     ]
 
-                    log.debug("Matched exceptions: %s" % matched_exc)
+                    log.debug("Matched exceptions: %s", matched_exc)
                     if matched_exc and matched_exc[0] is not None:
                         exception = matched_exc[0]
-                        log.debug("Matched exception: %s" % exception)
+                        log.debug("Matched exception: %s", exception)
                         raise exception(e)
                     elif matched_exc and matched_exc[0] is None:
                         log.debug("Exception is retryable!")
-                        pass
                     elif default_exc is not False:
                         raise default_exc(str(e))
                     elif default_exc is False:
                         # Reaching this part means no exception was matched
                         # and no default was specified.
                         log.debug(
-                            "No explicit behavior for this exception" " found. Raising."
+                            "No explicit behavior for this exception found. Raising."
                         )
                         raise e
 
                     # Must have been a retryable exception. Retry.
                     i = i + 1
-                    log.debug("Retrying in %s..." % delay)
+                    log.debug("Retrying in %s...", delay)
                     yield utils.tornado_sleep(delay)
 
                 log.debug("Retrying..")
@@ -191,7 +177,7 @@ def create_http_method(name, http_method):
             raise exceptions.InvalidOptions("Must pass named-args (kwargs)")
 
         ret = yield self._client.fetch(
-            url="%s%s" % (self.ENDPOINT, self._path),
+            url=f"{self.ENDPOINT}{self._path}",
             method=http_method.upper(),
             params=kwargs,
             auth_username=self.CONFIG.get("auth", {}).get("user"),
@@ -239,7 +225,7 @@ def create_consumer_method(name, config):
             config=self._attrs[name],
             client=self._client,
             *args,
-            **merged_kwargs
+            **merged_kwargs,
         )
 
     method.__name__ = name
@@ -331,10 +317,10 @@ class RestConsumer(object):
         self._create_consumer_methods()
 
         # Log some things
-        log.debug("%s/%s initialized" % (self.__class__.__name__, self._client))
+        log.debug("%s/%s initialized", self.__class__.__name__, self._client)
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self)
+        return f"{self.__class__.__name__}({self})"
 
     def __str__(self):
         return str(self._path)
@@ -355,7 +341,7 @@ class RestConsumer(object):
         try:
             path = utils.populate_with_tokens(path, tokens)
         except LookupError as e:
-            msg = "Path (%s), tokens: (%s) error: %s" % (path, tokens, e)
+            msg = f"Path ({path}), tokens: ({tokens}) error: {e}"
             raise TypeError(msg)
 
         return path
@@ -371,7 +357,7 @@ class RestConsumer(object):
             return
 
         for name in list(self._http_methods.keys()):
-            full_method_name = "http_%s" % name
+            full_method_name = f"http_{name}"
             method = create_http_method(full_method_name, name)
             setattr(self, full_method_name, types.MethodType(method, self))
 
@@ -418,7 +404,7 @@ class RestClient(object):
     #: ...         '': <all other strings trigger this exception>
     #: ...     }
     #:
-    EXCEPTIONS = {
+    EXCEPTIONS: Dict[Exception, Optional[Dict]] = {
         httpclient.HTTPError: {
             "401": exceptions.InvalidCredentials,
             "403": exceptions.InvalidCredentials,
@@ -486,7 +472,7 @@ class RestClient(object):
 
         # Now generate the URL
         full_url = httputil.url_concat(url, sorted(args.items()))
-        log.debug("Generated URL: %s" % full_url)
+        log.debug("Generated URL: %s", full_url)
 
         return full_url
 
@@ -528,7 +514,7 @@ class RestClient(object):
             url = self._generate_escaped_url(url, params)
 
         # Generate the full request URL and log out what we're doing...
-        log.debug("Making %s request to %s. Data: %s" % (method, url, body))
+        log.debug("Making %s request to %s. Data: %s", method, url, body)
 
         # Create the http_request object
         http_request = httpclient.HTTPRequest(
@@ -548,13 +534,13 @@ class RestClient(object):
         # Execute the request and raise any exception. Exceptions are not
         # caught here because they are unique to the API endpoints, and thus
         # should be handled by the individual callers of this method.
-        log.debug("HTTP Request: %s" % http_request)
+        log.debug("HTTP Request: %s", http_request)
         try:
             http_response = yield self._client.fetch(http_request)
         except httpclient.HTTPError as e:
-            log.critical("Request for %s failed: %s" % (url, e))
+            log.critical("Request for %s failed: %s", url, e)
             raise
-        log.debug("HTTP Response: %s" % http_response.body)
+        log.debug("HTTP Response: %s", http_response.body)
 
         try:
             body = json.loads(http_response.body)

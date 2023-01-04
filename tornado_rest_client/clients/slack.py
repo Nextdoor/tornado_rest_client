@@ -1,17 +1,3 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# Copyright 2014 Nextdoor.com, Inc
-
 """
 :mod:`tornado_rest_client.clients.slack`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -51,12 +37,12 @@ log = logging.getLogger(__name__)
 __author__ = "Matt Wise <matt@nextdoor.com>"
 
 
-class RequestFailure(exceptions.BaseException):
+class RequestFailure(exceptions.BaseFailure):
 
     """Failure to parse the return data from Slack."""
 
 
-class Error(exceptions.BaseException):
+class Error(exceptions.BaseFailure):
 
     """Failure to execute API call returned by Slack."""
 
@@ -103,7 +89,7 @@ class Slack(api.RestConsumer):
 
         kwargs["client"] = api.SimpleTokenRestClient(tokens={"token": kwargs["token"]})
 
-        super(Slack, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def check_results(self, result):
         """Returns True/False if the result was OK from Slack.
@@ -123,10 +109,10 @@ class Slack(api.RestConsumer):
         try:
             if result.get("ok", False):
                 return True
-            else:
-                error = result["error"]
+
+            error = result["error"]
         except (AttributeError, KeyError):
-            raise RequestFailure("An unexpected Slack API failure occured: %s" % result)
+            raise RequestFailure(f"An unexpected Slack API failure occured: {result}")
 
         # Set the default exception type to Error
         exc = Error
@@ -137,4 +123,4 @@ class Slack(api.RestConsumer):
             exc = exceptions.InvalidCredentials
 
         # Finally, raise our exception
-        raise exc("Slack API Error: %s" % error)
+        raise exc(f"Slack API Error: {error}")
