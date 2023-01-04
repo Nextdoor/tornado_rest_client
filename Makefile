@@ -15,8 +15,7 @@ endif
 
 build: .build
 
-.build:
-	pip install -r requirements.txt -r requirements.test.txt
+.build: $(VENV_DIR)
 	touch .build
 
 .PHONY: clean
@@ -25,22 +24,22 @@ clean: $(VENV_DIR)
 	rm -rf $(BUILD_DIRS)
 	PATH=$(VENV_DIR)/bin:$(PATH) $(MAKE) -C docs clean
 
-.PHONY: lint_and_test
-lint_and_test: lint test
+.PHONY: lint_test_integration_docs
+lint_test_integration_docs: lint test integration docs
 
 .PHONY: lint
 lint: $(VENV_DIR)
-	$(PYBLACK) $(PYBLACK_OPTS) kingpin
+	$(PYBLACK) $(PYBLACK_OPTS) tornado_rest_client
 
 .PHONY: test
-test: $(VENV_DIR) build docs
-	python setup.py test integration
-	PYTHONPATH=$(HERE) $(PYFLAKES) kingpin
+test: $(VENV_DIR)
+	$(PYTHON) setup.py test
+	PYTHONPATH=$(HERE) $(PYFLAKES) tornado_rest_client
 
 .PHONY: integration
-integration: $(VENV_DIR) build
-	PYFLAKES_NODOCTEST=True python setup.py integration
-	PYTHONPATH=$(HERE) $(PYFLAKES) kingpin
+integration: $(VENV_DIR)
+	$(PYTHON) setup.py integration
+	PYFLAKES_NODOCTEST=True PYTHONPATH=$(HERE) $(PYFLAKES) tornado_rest_client
 
 .PHONY: docs
 docs: $(VENV_DIR)

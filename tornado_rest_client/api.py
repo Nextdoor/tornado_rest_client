@@ -24,13 +24,16 @@ dynamically configures the object at instantiation time with the appropriate
 .. autoclass:: RestConsumer
    :members:
    :private-members:
+   :noindex:
 .. autoclass:: RestClient
    :members:
    :private-members:
+   :noindex:
 .. autoclass:: SimpleTokenRestClient
    :members:
    :inherited-members:
    :show-inheritance:
+   :noindex:
 """
 
 import logging
