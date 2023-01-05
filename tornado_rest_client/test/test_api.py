@@ -166,9 +166,7 @@ class TestRestConsumer(testing.AsyncTestCase):
 
         # the path with an arg must exist as an access method, and fail if you
         # don't supply the arg.
-        self.assertFalse(
-            callable(test_consumer.test_path_with_new_access_type_with_res)
-        )
+        self.assertFalse(callable(test_consumer.test_path_with_new_access_type_with_res))
 
         # with arg, it should pass
         ret = test_consumer.test_path_with_new_access_type
@@ -251,9 +249,7 @@ class TestRestClient(testing.AsyncTestCase):
         self.client = api.RestClient()
         self.http_response_mock = mock.MagicMock(name="response")
         self.http_client_mock = mock.MagicMock(name="http_client")
-        self.http_client_mock.fetch.return_value = tornado_value(
-            self.http_response_mock
-        )
+        self.http_client_mock.fetch.return_value = tornado_value(self.http_response_mock)
         self.client._client = self.http_client_mock
 
     @testing.gen_test
@@ -262,9 +258,7 @@ class TestRestClient(testing.AsyncTestCase):
         self.assertEqual("http://unittest?foo=bar", result)
         result = self.client._generate_escaped_url("http://unittest", {"foo": True})
         self.assertEqual("http://unittest?foo=true", result)
-        result = self.client._generate_escaped_url(
-            "http://unittest", {"foo": "bar", "xyz": "abc"}
-        )
+        result = self.client._generate_escaped_url("http://unittest", {"foo": "bar", "xyz": "abc"})
         self.assertEqual("http://unittest?foo=bar&xyz=abc", result)
         result = self.client._generate_escaped_url(
             "http://unittest", {"foo": "bar baz", "xyz": "abc"}
@@ -367,9 +361,7 @@ class TestSimpleTokenRestClient(testing.AsyncTestCase):
         self.client = api.SimpleTokenRestClient(tokens={"token": "foobar"})
         self.http_response_mock = mock.MagicMock(name="response")
         self.http_client_mock = mock.MagicMock(name="http_client")
-        self.http_client_mock.fetch.return_value = tornado_value(
-            self.http_response_mock
-        )
+        self.http_client_mock.fetch.return_value = tornado_value(self.http_response_mock)
         self.client._client = self.http_client_mock
 
     @testing.gen_test

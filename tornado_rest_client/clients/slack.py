@@ -112,7 +112,9 @@ class Slack(api.RestConsumer):
 
             error = result["error"]
         except (AttributeError, KeyError):
-            raise RequestFailure(f"An unexpected Slack API failure occured: {result}")
+            raise RequestFailure(  # pylint: disable=raise-missing-from
+                f"An unexpected Slack API failure occured: {result}"
+            )
 
         # Set the default exception type to Error
         exc = Error

@@ -25,9 +25,7 @@ def tornado_sleep(seconds=1.0):
     yield gen.sleep(seconds)
 
 
-def populate_with_tokens(
-    string, tokens, left_wrapper="%", right_wrapper="%", strict=True
-):
+def populate_with_tokens(string, tokens, left_wrapper="%", right_wrapper="%", strict=True):
     """Insert token variables into the string.
 
     Will match any token wrapped in '%'s and replace it with the value of that
@@ -52,15 +50,13 @@ def populate_with_tokens(
     # etc), then skip this.
     allowed_types = (str, bool, int, float)
     if tokens:
-        for k, v in tokens.items():
+        for key, val in tokens.items():
 
-            if type(v) not in allowed_types:
-                log.warning(
-                    "Token %s=%s is not in allowed types: %s", k, v, allowed_types
-                )
+            if type(val) not in allowed_types:
+                log.warning("Token %s=%s is not in allowed types: %s", key, val, allowed_types)
                 continue
 
-            string = string.replace(f"{left_wrapper}{k}{right_wrapper}", str(v))
+            string = string.replace(f"{left_wrapper}{key}{right_wrapper}", str(val))
 
     # If we aren't strict, we return...
     if not strict:
@@ -68,9 +64,7 @@ def populate_with_tokens(
 
     # If we are strict, we check if we missed anything. If we did, raise an
     # exception.
-    missed_tokens = list(
-        set(re.findall(rf"{left_wrapper}[\w]+{right_wrapper}", string))
-    )
+    missed_tokens = list(set(re.findall(rf"{left_wrapper}[\w]+{right_wrapper}", string)))
     if missed_tokens:
         raise LookupError(f"Found un-matched tokens in JSON string: {missed_tokens}")
 
