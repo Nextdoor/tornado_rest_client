@@ -1,16 +1,3 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# Copyright 2014 Nextdoor.com, Inc
 """
 :mod:`tornado_rest_client.api`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -40,11 +27,12 @@ import logging
 import types
 from urllib.parse import urlencode
 import functools
+import json
+from typing import Dict, Optional
 
 from tornado import gen
 from tornado import httpclient
 from tornado import httputil
-import json
 
 from tornado_rest_client import utils
 from tornado_rest_client import exceptions
@@ -99,10 +87,7 @@ def retry(func=None, retries=3, delay=0.25):
             while True:
                 # Don't log out the first try as a 'Try' ... just do it
                 if i > 1:
-                    log.debug(
-                        "Try (%s/%s) of %s(%s, %s)"
-                        % (i, retries, func, args, safe_kwargs)
-                    )
+                    log.debug("Try (%s/%s) of %s(%s, %s)", i, retries, func, args, safe_kwargs)
 
                 # Attempt the method. Catch any exception listed in
                 # self.EXCEPTIONS.
@@ -110,52 +95,50 @@ def retry(func=None, retries=3, delay=0.25):
                 try:
                     ret = yield gen.coroutine(func)(self, *args, **kwargs)
                     raise gen.Return(ret)
-                except tuple(self.EXCEPTIONS.keys()) as e:
-                    error = str(e)
-                    if hasattr(e, "message"):
-                        error = e.message
-                    log.warning("Exception raised on try %s: %s" % (i, error))
+                except tuple(  # pylint: disable=catching-non-exception
+                    self.EXCEPTIONS.keys()
+                ) as generic_exc:
+                    error = str(generic_exc)
+                    if hasattr(generic_exc, "message"):
+                        error = generic_exc.message
+                    log.warning("Exception raised on try %s: %s", i, error)
 
                     # If we've run out of retry attempts, raise the exception
                     if i >= retries:
-                        log.debug("Raising exception: %s" % e)
-                        raise e
+                        log.debug("Raising exception: %s", generic_exc)
+                        raise generic_exc  # pylint: disable=raising-non-exception
 
                     # Gather the config for this exception-type from
                     # self.EXCEPTIONS. Iterate through the data and see if we
                     # have a matching exception string.
-                    exc_conf = self.EXCEPTIONS[type(e)].copy()
+                    exc_conf = self.EXCEPTIONS[type(generic_exc)].copy()
 
                     # An empty string for the key is the default exception
                     # It's optional, but can match before others match, so we
                     # pop it before searching.
                     default_exc = exc_conf.pop("", False)
-                    log.debug("Searching through %s" % exc_conf)
-                    matched_exc = [
-                        exc for key, exc in list(exc_conf.items()) if key in str(e)
+                    log.debug("Searching through %s", exc_conf)
+                    matched_excs = [
+                        exc for key, exc in list(exc_conf.items()) if key in str(generic_exc)
                     ]
 
-                    log.debug("Matched exceptions: %s" % matched_exc)
-                    if matched_exc and matched_exc[0] is not None:
-                        exception = matched_exc[0]
-                        log.debug("Matched exception: %s" % exception)
-                        raise exception(e)
-                    elif matched_exc and matched_exc[0] is None:
-                        log.debug("Exception is retryable!")
-                        pass
+                    log.debug("Matched exceptions: %s", matched_excs)
+                    if matched_excs:
+                        if matched_excs[0] is not None:
+                            specific_exc = matched_excs[0]
+                            log.debug("Matched exception: %s", specific_exc)
+                            raise specific_exc(generic_exc)  # pylint: disable=raise-missing-from
                     elif default_exc is not False:
-                        raise default_exc(str(e))
+                        raise default_exc(str(generic_exc))  # pylint: disable=raise-missing-from
                     elif default_exc is False:
                         # Reaching this part means no exception was matched
                         # and no default was specified.
-                        log.debug(
-                            "No explicit behavior for this exception" " found. Raising."
-                        )
-                        raise e
+                        log.debug("No explicit behavior for this exception found. Raising.")
+                        raise generic_exc  # pylint: disable=raising-non-exception
 
-                    # Must have been a retryable exception. Retry.
+                    log.debug("Exception is retryable!")
                     i = i + 1
-                    log.debug("Retrying in %s..." % delay)
+                    log.debug("Retrying in %s...", delay)
                     yield utils.tornado_sleep(delay)
 
                 log.debug("Retrying..")
@@ -170,7 +153,7 @@ def retry(func=None, retries=3, delay=0.25):
     return decorate
 
 
-def create_http_method(name, http_method):
+def create_http_method(name, http_method):  # pylint: disable=unused-argument
     """Creates the *GET*/*PUT*/*DELETE*/*POST* function for a RestConsumer.
 
     This method is called by :func:`RestConsumer._create_http_methods` to
@@ -190,8 +173,8 @@ def create_http_method(name, http_method):
         if args:
             raise exceptions.InvalidOptions("Must pass named-args (kwargs)")
 
-        ret = yield self._client.fetch(
-            url="%s%s" % (self.ENDPOINT, self._path),
+        ret = yield self._client.fetch(  # pylint: disable=protected-access
+            url=f"{self.ENDPOINT}{self._path}",  # pylint: disable=protected-access
             method=http_method.upper(),
             params=kwargs,
             auth_username=self.CONFIG.get("auth", {}).get("user"),
@@ -203,7 +186,7 @@ def create_http_method(name, http_method):
     return method
 
 
-def create_consumer_method(name, config):
+def create_consumer_method(name, config):  # pylint: disable=unused-argument
     """Creates a method that returns a configured RestConsumer object.
 
     RestConsumer objects themselves can have references to other RestConsumer
@@ -232,21 +215,23 @@ def create_consumer_method(name, config):
         # the RestConsumer parent object. This ensures that tokens replaced in
         # the 'path' variables are passed all the way down the instantiation
         # chain.
-        merged_kwargs = dict(list(self._kwargs.items()) + list(kwargs.items()))
+        merged_kwargs = dict(
+            list(self._kwargs.items()) + list(kwargs.items())  # pylint: disable=protected-access
+        )
 
         return self.__class__(
             name=name,
-            config=self._attrs[name],
-            client=self._client,
+            config=self._attrs[name],  # pylint: disable=protected-access
+            client=self._client,  # pylint: disable=protected-access
             *args,
-            **merged_kwargs
+            **merged_kwargs,
         )
 
     method.__name__ = name
     return method
 
 
-class RestConsumer(object):
+class RestConsumer:
 
     """Async REST API Consumer object.
 
@@ -305,7 +290,7 @@ class RestConsumer(object):
     #: ... }:
     CONFIG = {}
 
-    def __init__(self, name=None, config=None, client=None, *args, **kwargs):
+    def __init__(self, name=None, config=None, client=None, **kwargs):
         """Initializes the RestConsumer."""
         # If these aren't passed in, then get them from the class definition
         name = name or self.__class__.__name__
@@ -331,10 +316,10 @@ class RestConsumer(object):
         self._create_consumer_methods()
 
         # Log some things
-        log.debug("%s/%s initialized" % (self.__class__.__name__, self._client))
+        log.debug("%s/%s initialized", self.__class__.__name__, self._client)
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self)
+        return f"{self.__class__.__name__}({self})"
 
     def __str__(self):
         return str(self._path)
@@ -350,13 +335,14 @@ class RestConsumer(object):
         :return: A modified string
         """
         if not path:
-            return
+            return path
 
         try:
             path = utils.populate_with_tokens(path, tokens)
-        except LookupError as e:
-            msg = "Path (%s), tokens: (%s) error: %s" % (path, tokens, e)
-            raise TypeError(msg)
+        except LookupError as exc:
+            raise TypeError(  # pylint: disable=raise-missing-from
+                f"Path ({path}), tokens: ({tokens}) error: {exc}"
+            )
 
         return path
 
@@ -370,9 +356,9 @@ class RestConsumer(object):
         if not self._http_methods:
             return
 
-        for name in list(self._http_methods.keys()):
-            full_method_name = "http_%s" % name
-            method = create_http_method(full_method_name, name)
+        for http_method in list(self._http_methods.keys()):
+            full_method_name = f"http_{http_method}"
+            method = create_http_method(full_method_name, http_method)
             setattr(self, full_method_name, types.MethodType(method, self))
 
     def _create_consumer_methods(self):
@@ -397,7 +383,7 @@ class RestConsumer(object):
                 setattr(self, name, types.MethodType(method, self))
 
 
-class RestClient(object):
+class RestClient:
 
     """Simple Async REST client for the RestConsumer.
 
@@ -418,7 +404,7 @@ class RestClient(object):
     #: ...         '': <all other strings trigger this exception>
     #: ...     }
     #:
-    EXCEPTIONS = {
+    EXCEPTIONS: Dict[Exception, Optional[Dict]] = {
         httpclient.HTTPError: {
             "401": exceptions.InvalidCredentials,
             "403": exceptions.InvalidCredentials,
@@ -447,7 +433,7 @@ class RestClient(object):
         client=None,
         headers=None,
         timeout=TIMEOUT,
-        json=None,
+        json=None,  # pylint: disable=redefined-outer-name
         allow_nonstandard_methods=False,
     ):
         self._client = client or httpclient.AsyncHTTPClient()
@@ -457,9 +443,7 @@ class RestClient(object):
         self.allow_nonstandard_methods = allow_nonstandard_methods
         self.json = json
 
-        if (
-            (self.json is True or self.JSON_BODY) and self.json is not False
-        ) and not self.headers:
+        if ((self.json is True or self.JSON_BODY) and self.json is not False) and not self.headers:
             self.headers = {"Content-Type": "application/json"}
 
     def _generate_escaped_url(self, url, args):
@@ -481,12 +465,12 @@ class RestClient(object):
 
         # Convert all Bool values to lowercase strings
         for key, value in list(args.items()):
-            if type(value) is bool:
+            if isinstance(value, bool):
                 args[key] = str(value).lower()
 
         # Now generate the URL
         full_url = httputil.url_concat(url, sorted(args.items()))
-        log.debug("Generated URL: %s" % full_url)
+        log.debug("Generated URL: %s", full_url)
 
         return full_url
 
@@ -496,7 +480,7 @@ class RestClient(object):
         self,
         url,
         method,
-        params={},
+        params=None,
         auth_username=None,
         auth_password=None,
         timeout=None,
@@ -512,6 +496,8 @@ class RestClient(object):
         :yields: String of the returned text from the web service.
         """
 
+        if params is None:
+            params = {}
         # Start with empty post data. If we're doing a PUT/POST, then just pass
         # args directly into the ch() method and let it take care of
         # things. If we're doing a GET/DELETE though, convert kwargs into a
@@ -528,7 +514,7 @@ class RestClient(object):
             url = self._generate_escaped_url(url, params)
 
         # Generate the full request URL and log out what we're doing...
-        log.debug("Making %s request to %s. Data: %s" % (method, url, body))
+        log.debug("Making %s request to %s. Data: %s", method, url, body)
 
         # Create the http_request object
         http_request = httpclient.HTTPRequest(
@@ -548,18 +534,18 @@ class RestClient(object):
         # Execute the request and raise any exception. Exceptions are not
         # caught here because they are unique to the API endpoints, and thus
         # should be handled by the individual callers of this method.
-        log.debug("HTTP Request: %s" % http_request)
+        log.debug("HTTP Request: %s", http_request)
         try:
             http_response = yield self._client.fetch(http_request)
-        except httpclient.HTTPError as e:
-            log.critical("Request for %s failed: %s" % (url, e))
+        except httpclient.HTTPError as exc:
+            log.critical("Request for %s failed: %s", url, exc)
             raise
-        log.debug("HTTP Response: %s" % http_response.body)
+        log.debug("HTTP Response: %s", http_response.body)
 
         try:
             body = json.loads(http_response.body)
         except ValueError:
-            raise gen.Return(http_response.body)
+            raise gen.Return(http_response.body)  # pylint: disable=raise-missing-from
 
         # Receive a successful return
         raise gen.Return(body)
@@ -576,7 +562,7 @@ class SimpleTokenRestClient(RestClient):
     """
 
     def __init__(self, tokens, *args, **kwargs):
-        super(SimpleTokenRestClient, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._tokens = tokens
         for key in list(tokens.keys()):
             self._private_kwargs.append(key)
@@ -587,5 +573,5 @@ class SimpleTokenRestClient(RestClient):
             kwargs["params"] = {}
 
         kwargs["params"].update(self._tokens)
-        ret = yield super(SimpleTokenRestClient, self).fetch(*args, **kwargs)
+        ret = yield super().fetch(*args, **kwargs)
         raise gen.Return(ret)

@@ -10,8 +10,10 @@ PYBLACK     := $(VENV_DIR)/bin/black
 BUILD_DIRS = bin .build build include lib lib64 man share package *.egg
 
 DRY ?= true
-ifneq ($(DRY),false)
-  PYBLACK_OPTS := --diff --check
+ifeq ($(DRY),false)
+	PYBLACK_OPTS := --line-length 100
+else
+	PYBLACK_OPTS := --line-length 100 --diff --check
 endif
 
 .PHONY: build
