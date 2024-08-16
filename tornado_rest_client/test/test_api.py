@@ -33,7 +33,6 @@ def tornado_value(value=None):
 
 
 class RestClientTest(api.RestClient):
-
     """Fake web client object for unit tests."""
 
     @gen.coroutine
@@ -94,7 +93,6 @@ class TestRetry(testing.AsyncTestCase):
             pass
 
         class FailingClass:
-
             """Test class that is intended for @retry decorator"""
 
             EXCEPTIONS = {TestException: {"cruel": None}}  # Retry during cruelty
@@ -120,7 +118,6 @@ class TestRetry(testing.AsyncTestCase):
             pass
 
         class FailingClass:
-
             """Test class that is intended for @retry decorator"""
 
             EXCEPTIONS = {TestException: {"cruel": None}}  # Retry during cruelty

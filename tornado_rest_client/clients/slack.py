@@ -38,17 +38,14 @@ __author__ = "Matt Wise <matt@nextdoor.com>"
 
 
 class RequestFailure(exceptions.BaseFailure):
-
     """Failure to parse the return data from Slack."""
 
 
 class Error(exceptions.BaseFailure):
-
     """Failure to execute API call returned by Slack."""
 
 
 class Slack(api.RestConsumer):
-
     """Simple Slack API Client.
 
     This example API client has very limited functionality -- basically it

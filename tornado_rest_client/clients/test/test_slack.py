@@ -10,7 +10,6 @@ __author__ = "Matt Wise <matt@nextdoor.com>"
 
 
 class TestSlack(testing.AsyncTestCase):
-
     """Unit tests for the Slack API Client."""
 
     def test_init_missing_tokeb(self):

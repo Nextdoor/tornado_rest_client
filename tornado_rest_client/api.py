@@ -232,7 +232,6 @@ def create_consumer_method(name, config):  # pylint: disable=unused-argument
 
 
 class RestConsumer:
-
     """Async REST API Consumer object.
 
     The generic RestConsumer object (with no parameters passed in) looks at
@@ -384,7 +383,6 @@ class RestConsumer:
 
 
 class RestClient:
-
     """Simple Async REST client for the RestConsumer.
 
     Implements a :class:`~tornado.httpclient.AsyncHTTPClient`, some convinience
@@ -552,7 +550,6 @@ class RestClient:
 
 
 class SimpleTokenRestClient(RestClient):
-
     """Simple RestClient with a token for HTTP authentication.
 
     Used in most simple APIs where a token is provided to the end user.
