@@ -1,0 +1,28 @@
+name: setup-python
+description: Automates the configuration of the Python environment
+inputs:
+  saveCache:
+    description: Whether or not to save the cache at the end of the flow
+    required: false
+    default: "false"
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      id: setup_python
+      with:
+        python-version: '3.12'
+    - name: Restore cached virtualenv
+      uses: actions/cache/restore@v4
+      with:
+        key: venv-${{ runner.os }}-${{ steps.setup_python.outputs.python-version }}-${{ hashFiles('requirements.txt') }}
+        path: .venv
+    - run: make venv
+      shell: bash
+    # Note: this will not overwrite an existing cache key: https://github.com/actions/cache/pull/1308
+    - name: Saved cached virtualenv
+      if: ${{ inputs.saveCache == 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        key: venv-${{ runner.os }}-${{ steps.setup_python.outputs.python-version }}-${{ hashFiles('requirements.txt') }}
+        path: .venv

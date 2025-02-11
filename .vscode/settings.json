@@ -1,0 +1,7 @@
+{
+  "python.testing.pytestArgs": [
+    "tornado_rest_client"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
+}
