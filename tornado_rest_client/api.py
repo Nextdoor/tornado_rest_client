@@ -24,22 +24,19 @@ dynamically configures the object at instantiation time with the appropriate
 """
 
 import logging
-import types
-from urllib.parse import urlencode
-import functools
-import json
-from typing import Dict, Optional
-
-from tornado import gen
-from tornado import httpclient
-from tornado import httputil
-
-from tornado_rest_client import utils
-from tornado_rest_client import exceptions
 
 log = logging.getLogger(__name__)
 
-__author__ = "Matt Wise <matt@nextdoor.com>"
+import functools
+import json
+import types
+
+from typing import Dict, Optional
+from urllib.parse import urlencode
+
+from tornado import gen, httpclient, httputil
+
+from tornado_rest_client import exceptions, utils
 
 
 def retry(func=None, retries=3, delay=0.25):
@@ -87,7 +84,9 @@ def retry(func=None, retries=3, delay=0.25):
             while True:
                 # Don't log out the first try as a 'Try' ... just do it
                 if i > 1:
-                    log.debug("Try (%s/%s) of %s(%s, %s)", i, retries, func, args, safe_kwargs)
+                    log.debug(
+                        "Try (%s/%s) of %s(%s, %s)", i, retries, func, args, safe_kwargs
+                    )
 
                 # Attempt the method. Catch any exception listed in
                 # self.EXCEPTIONS.
@@ -119,7 +118,9 @@ def retry(func=None, retries=3, delay=0.25):
                     default_exc = exc_conf.pop("", False)
                     log.debug("Searching through %s", exc_conf)
                     matched_excs = [
-                        exc for key, exc in list(exc_conf.items()) if key in str(generic_exc)
+                        exc
+                        for key, exc in list(exc_conf.items())
+                        if key in str(generic_exc)
                     ]
 
                     log.debug("Matched exceptions: %s", matched_excs)
@@ -127,19 +128,25 @@ def retry(func=None, retries=3, delay=0.25):
                         if matched_excs[0] is not None:
                             specific_exc = matched_excs[0]
                             log.debug("Matched exception: %s", specific_exc)
-                            raise specific_exc(generic_exc)  # pylint: disable=raise-missing-from
+                            raise specific_exc(
+                                generic_exc
+                            )  # pylint: disable=raise-missing-from
                     elif default_exc is not False:
-                        raise default_exc(str(generic_exc))  # pylint: disable=raise-missing-from
+                        raise default_exc(
+                            str(generic_exc)
+                        )  # pylint: disable=raise-missing-from
                     elif default_exc is False:
                         # Reaching this part means no exception was matched
                         # and no default was specified.
-                        log.debug("No explicit behavior for this exception found. Raising.")
+                        log.debug(
+                            "No explicit behavior for this exception found. Raising."
+                        )
                         raise generic_exc  # pylint: disable=raising-non-exception
 
                     log.debug("Exception is retryable!")
                     i = i + 1
                     log.debug("Retrying in %s...", delay)
-                    yield utils.tornado_sleep(delay)
+                    yield gen.sleep(delay)
 
                 log.debug("Retrying..")
 
@@ -204,8 +211,8 @@ def create_consumer_method(name, config):  # pylint: disable=unused-argument
 
     :param str name: The name of the method to create (ie, `auth_test`)
     :param dict config: The dictionary of :attr:`~RestConsumer.CONFIG` data
-      specific to the API endpoint that we are configuring (should include
-      `path` and `http_methods` keys).
+        specific to the API endpoint that we are configuring (should include
+        `path` and `http_methods` keys).
 
     :return: A method that returns a fresh RestConsumer object
     """
@@ -216,7 +223,8 @@ def create_consumer_method(name, config):  # pylint: disable=unused-argument
         # the 'path' variables are passed all the way down the instantiation
         # chain.
         merged_kwargs = dict(
-            list(self._kwargs.items()) + list(kwargs.items())  # pylint: disable=protected-access
+            list(self._kwargs.items())
+            + list(kwargs.items())  # pylint: disable=protected-access
         )
 
         return self.__class__(
@@ -283,8 +291,8 @@ class RestConsumer:
     #: ...     'path': '/', 'http_methods': {'get': {}},
     #: ...     'new': True,
     #: ...     'attrs': {
-    #: ...         'getter': {'path': '/get', 'htpt_methods': {'get': {}}},
-    #: ...         'poster': {'path': '/post', 'htpt_methods': {'post': {}}},
+    #: ...         'getter': {'path': '/get', 'http_methods': {'get': {}}},
+    #: ...         'poster': {'path': '/post', 'http_methods': {'post': {}}},
     #: ...     }
     #: ... }:
     CONFIG = {}
@@ -441,7 +449,9 @@ class RestClient:
         self.allow_nonstandard_methods = allow_nonstandard_methods
         self.json = json
 
-        if ((self.json is True or self.JSON_BODY) and self.json is not False) and not self.headers:
+        if (
+            (self.json is True or self.JSON_BODY) and self.json is not False
+        ) and not self.headers:
             self.headers = {"Content-Type": "application/json"}
 
     def _generate_escaped_url(self, url, args):
@@ -487,7 +497,7 @@ class RestClient:
 
         :param str url: The full url path of the API call
         :param dict params: Arguments (k/v pairs) to submit either as POST data
-          or URL argument options.
+            or URL argument options.
         :param str method: GET/PUT/POST/DELETE
         :param str auth_username: HTTP auth username
         :param str auth_password: HTTP auth password

@@ -3,7 +3,7 @@ Simple API Access Objects
 
 Most of the APIs out there leverage basic REST with JSON or XML as the data
 encoding method. Since these APIs behave similarly, we can define the API
-URLs and HTTP methods inside a `dict`, without writing any actual python 
+URLs and HTTP methods inside a `dict`, without writing any actual python
 methods.
 
 HTTPBin RestConsumer
@@ -76,7 +76,7 @@ You can customize the exception handling by subclassing the
                 '502': exceptions.InvalidOptions,
 
                 # This indicates a retry should happen
-                '503': None, 
+                '503': None,
 
                 # This acts as a catch-all
                 '': MyException,

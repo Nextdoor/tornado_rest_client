@@ -29,12 +29,9 @@ Usage:
 
 import logging
 
-from tornado_rest_client import api
-from tornado_rest_client import exceptions
-
 log = logging.getLogger(__name__)
 
-__author__ = "Matt Wise <matt@nextdoor.com>"
+from tornado_rest_client import api, exceptions
 
 
 class RequestFailure(exceptions.BaseFailure):
@@ -53,17 +50,17 @@ class Slack(api.RestConsumer):
 
     .. py:method:: auth_test
 
-      Accesses https://api.slack.com/api/auth.test
+        Accesses https://api.slack.com/api/auth.test
 
-      .. py:method:: http_post
+        .. py:method:: http_post
 
     .. py:method:: chat_postMessage
 
-      Accesses https://api.slack.com/api/chat.postMessage
+        Accesses https://api.slack.com/api/chat.postMessage
 
-      .. py:method:: http_post(channel, text, username[, as_user, parse,
-        link_names, attachments, unfurl_links, unfurl_media, icon_url,
-        icon_emoji])
+        .. py:method:: http_post(channel, text, username[, as_user, parse,
+            link_names, attachments, unfurl_links, unfurl_media, icon_url,
+            icon_emoji])
     """
 
     ENDPOINT = "https://api.slack.com"
@@ -82,7 +79,7 @@ class Slack(api.RestConsumer):
 
     def __init__(self, *args, **kwargs):
         if "token" not in kwargs:
-            raise exceptions.InvalidCredentials("No 'token' passed in")
+            raise exceptions.InvalidCredentials('Missing "token" keyword argument.')
 
         kwargs["client"] = api.SimpleTokenRestClient(tokens={"token": kwargs["token"]})
 
@@ -108,18 +105,12 @@ class Slack(api.RestConsumer):
                 return True
 
             error = result["error"]
-        except (AttributeError, KeyError):
-            raise RequestFailure(  # pylint: disable=raise-missing-from
+        except (AttributeError, KeyError) as e:
+            raise RequestFailure(
                 f"An unexpected Slack API failure occured: {result}"
-            )
+            ) from e
 
-        # Set the default exception type to Error
-        exc = Error
-
-        # If we know what kind fo error it is, we'll return a more accurate
-        # exception type.
         if error == "invalid_auth":
-            exc = exceptions.InvalidCredentials
+            raise exceptions.InvalidCredentials(f'Slack API Error: "invalid_auth".')
 
-        # Finally, raise our exception
-        raise exc(f"Slack API Error: {error}")
+        raise Error(f"Slack API Error: {error}")

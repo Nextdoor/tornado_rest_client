@@ -6,26 +6,21 @@ Common package for utility functions.
 """
 
 import logging
-import re
-
-from tornado import gen
-
-__author__ = "Matt Wise (matt@nextdoor.com)"
 
 log = logging.getLogger(__name__)
 
+import re
 
-@gen.coroutine
-def tornado_sleep(seconds=1.0):
-    """Async method equivalent to sleeping.
-
-    Args:
-        seconds: Float seconds. Default 1.0
-    """
-    yield gen.sleep(seconds)
+from typing import Dict, Union
 
 
-def populate_with_tokens(string, tokens, left_wrapper="%", right_wrapper="%", strict=True):
+def populate_with_tokens(
+    string: str,
+    tokens: Dict[str, Union[str, bool, int, float]],
+    left_wrapper="%",
+    right_wrapper="%",
+    strict=True,
+):
     """Insert token variables into the string.
 
     Will match any token wrapped in '%'s and replace it with the value of that
@@ -53,7 +48,9 @@ def populate_with_tokens(string, tokens, left_wrapper="%", right_wrapper="%", st
         for key, val in tokens.items():
 
             if type(val) not in allowed_types:
-                log.warning("Token %s=%s is not in allowed types: %s", key, val, allowed_types)
+                log.warning(
+                    "Token %s=%s is not in allowed types: %s", key, val, allowed_types
+                )
                 continue
 
             string = string.replace(f"{left_wrapper}{key}{right_wrapper}", str(val))
@@ -64,7 +61,7 @@ def populate_with_tokens(string, tokens, left_wrapper="%", right_wrapper="%", st
 
     # If we are strict, we check if we missed anything. If we did, raise an
     # exception.
-    missed_tokens = list(set(re.findall(rf"{left_wrapper}[\w]+{right_wrapper}", string)))
+    missed_tokens = set(re.findall(rf"{left_wrapper}[\w]+{right_wrapper}", string))
     if missed_tokens:
         raise LookupError(f"Found un-matched tokens in JSON string: {missed_tokens}")
 
