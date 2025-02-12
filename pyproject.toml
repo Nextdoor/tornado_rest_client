@@ -1,3 +1,52 @@
+[project]
+name = "tornado_rest_client"
+description = "Tornado REST Client"
+requires-python = ">=3.8"
+license = {text = "Apache License, Version 2.0"}
+authors = [{name = "Nextdoor Engineering"}]
+maintainers = [{name = "Nextdoor Engineering"},]
+keywords = [
+    "tornado_rest_client",
+    "nextdoor",
+    "tornado",
+    "rest",
+    "api",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Natural Language :: English",
+  "Operating System :: POSIX",
+  "Programming Language :: Python :: 3",
+  "Topic :: Software Development",
+]
+dynamic = [
+    "version",
+    "readme",
+    "dependencies"
+]
+
+[project.urls]
+Homepage = "https://nextdoor.com/"
+Documentation = "https://tornado_rest_client.readthedocs.io/en/latest/"
+Source = "https://github.com/Nextdoor/tornado_rest_client"
+Changelog = "https://github.com/Nextdoor/tornado_rest_client/releases"
+
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages]
+find = {}
+
+[tool.setuptools.dynamic]
+version = {attr = "tornado_rest_client.version.__version__"}
+dependencies = {file = ["requirements.txt"]}
+readme = {file = ["README.rst"]}
+
+[tool.coverage.run]
+omit = ["**/test/*"]
+
+[tool.coverage.report]
+show_missing = true

@@ -2,33 +2,14 @@
 
 import mock
 
-from tornado import gen
-from tornado import testing
-from tornado import httpclient
+from tornado import gen, httpclient, testing
 
-from tornado_rest_client import exceptions
-from tornado_rest_client import api
-
-__author__ = ("Matt Wise <matt@nextdoor.com>", "Mikhail Simin <mikhail@nextdoor.com>")
-
-
-def mock_tornado(value=None, exc=None):
-    """Creates a mock for a coroutine function that returns `value`"""
-
-    @gen.coroutine
-    def call(*args, **kwargs):
-        call._call_count = call._call_count + 1
-        if exc:
-            raise exc
-        raise gen.Return(value)
-
-        call._call_count = 0
-        return call
+from tornado_rest_client import api, exceptions
 
 
 @gen.coroutine
 def tornado_value(value=None):
-    """Convers whatever is passed in to a tornado value."""
+    """Converts whatever is passed in to a tornado value."""
     raise gen.Return(value)
 
 
@@ -163,7 +144,9 @@ class TestRestConsumer(testing.AsyncTestCase):
 
         # the path with an arg must exist as an access method, and fail if you
         # don't supply the arg.
-        self.assertFalse(callable(test_consumer.test_path_with_new_access_type_with_res))
+        self.assertFalse(
+            callable(test_consumer.test_path_with_new_access_type_with_res)
+        )
 
         # with arg, it should pass
         ret = test_consumer.test_path_with_new_access_type
@@ -246,8 +229,14 @@ class TestRestClient(testing.AsyncTestCase):
         self.client = api.RestClient()
         self.http_response_mock = mock.MagicMock(name="response")
         self.http_client_mock = mock.MagicMock(name="http_client")
-        self.http_client_mock.fetch.return_value = tornado_value(self.http_response_mock)
+        self.http_client_mock.fetch.return_value = tornado_value(
+            self.http_response_mock
+        )
         self.client._client = self.http_client_mock
+
+    def test_init_content_type(self):
+        client = api.RestClient(json=True)
+        self.assertEqual(client.headers, {"Content-Type": "application/json"})
 
     @testing.gen_test
     def test_generate_escaped_url(self):
@@ -255,7 +244,9 @@ class TestRestClient(testing.AsyncTestCase):
         self.assertEqual("http://unittest?foo=bar", result)
         result = self.client._generate_escaped_url("http://unittest", {"foo": True})
         self.assertEqual("http://unittest?foo=true", result)
-        result = self.client._generate_escaped_url("http://unittest", {"foo": "bar", "xyz": "abc"})
+        result = self.client._generate_escaped_url(
+            "http://unittest", {"foo": "bar", "xyz": "abc"}
+        )
         self.assertEqual("http://unittest?foo=bar&xyz=abc", result)
         result = self.client._generate_escaped_url(
             "http://unittest", {"foo": "bar baz", "xyz": "abc"}
@@ -358,7 +349,9 @@ class TestSimpleTokenRestClient(testing.AsyncTestCase):
         self.client = api.SimpleTokenRestClient(tokens={"token": "foobar"})
         self.http_response_mock = mock.MagicMock(name="response")
         self.http_client_mock = mock.MagicMock(name="http_client")
-        self.http_client_mock.fetch.return_value = tornado_value(self.http_response_mock)
+        self.http_client_mock.fetch.return_value = tornado_value(
+            self.http_response_mock
+        )
         self.client._client = self.http_client_mock
 
     @testing.gen_test

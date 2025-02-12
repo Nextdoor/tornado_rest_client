@@ -1,8 +1,5 @@
 import os
-import time
-
-from tornado import testing
-from tornado.testing import unittest
+import unittest
 
 from tornado_rest_client import utils
 
@@ -56,12 +53,3 @@ class TestUtils(unittest.TestCase):
             string, tokens, left_wrapper="{", right_wrapper="}", strict=False
         )
         self.assertEqual(result, expect)
-
-
-class TestAsync(testing.AsyncTestCase):
-    @testing.gen_test
-    def test_tornado_sleep(self):
-        start = time.time()
-        yield utils.tornado_sleep(0.1)
-        stop = time.time()
-        self.assertTrue(stop - start > 0.1)

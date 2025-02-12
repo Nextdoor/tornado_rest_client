@@ -2,11 +2,8 @@
 
 from tornado import testing
 
-from tornado_rest_client.clients import slack
 from tornado_rest_client import exceptions
-
-
-__author__ = "Matt Wise <matt@nextdoor.com>"
+from tornado_rest_client.clients import slack
 
 
 class TestSlack(testing.AsyncTestCase):

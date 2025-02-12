@@ -1,65 +1,60 @@
 """Integration tests for the tornado_rest_client.api module"""
 
-from tornado import testing
-from tornado import httpclient
+from tornado import httpclient, testing
 
-from tornado_rest_client import exceptions
-from tornado_rest_client import api
-
-
-__author__ = "Matt Wise <matt@nextdoor.com>"
-
-
-HTTPBIN = {
-    "path": "/",
-    "http_methods": {"get": {}},
-    "attrs": {
-        "get": {
-            "path": "/get",
-            "http_methods": {"get": {}},
-        },
-        "post": {
-            "path": "/post",
-            "http_methods": {"post": {}},
-        },
-        "put": {
-            "path": "/put",
-            "http_methods": {"put": {}},
-        },
-        "delete": {
-            "path": "/delete",
-            "http_methods": {"delete": {}},
-        },
-        "status": {
-            "path": "/status/%res%",
-            "http_methods": {"get": {}},
-        },
-        "basic_auth": {
-            "path": "/basic-auth/username/password",
-            "http_methods": {"get": {}},
-        },
-    },
-}
+from tornado_rest_client import api, exceptions
 
 
 class HTTPBinRestConsumer(api.RestConsumer):
 
-    CONFIG = HTTPBIN
+    CONFIG = {
+        "path": "/",
+        "http_methods": {"get": {}},
+        "attrs": {
+            "get": {
+                "path": "/get",
+                "http_methods": {"get": {}},
+            },
+            "post": {
+                "path": "/post",
+                "http_methods": {"post": {}},
+            },
+            "put": {
+                "path": "/put",
+                "http_methods": {"put": {}},
+            },
+            "delete": {
+                "path": "/delete",
+                "http_methods": {"delete": {}},
+            },
+            "status": {
+                "path": "/status/%res%",
+                "http_methods": {"get": {}},
+            },
+            "basic_auth": {
+                "path": "/basic-auth/username/password",
+                "http_methods": {"get": {}},
+            },
+        },
+    }
     ENDPOINT = "http://httpbin.org"
+
+
+class HTTPBinRestConsumerBasicAuthed(HTTPBinRestConsumer):
+
+    CONFIG = dict(HTTPBinRestConsumer.CONFIG).update(
+        {
+            "auth": {
+                "user": "username",
+                "pass": "password",
+            }
+        }
+    )
 
 
 class JSONRestClient(api.RestClient):
 
     JSON_BODY = True
-
-
-class HTTPBinRestConsumerBasicAuthed(HTTPBinRestConsumer):
-
-    CONFIG = dict(HTTPBinRestConsumer.CONFIG)
-    CONFIG["auth"] = {
-        "user": "username",
-        "pass": "password",
-    }
 
 
 class IntegrationRestConsumer(testing.AsyncTestCase):
